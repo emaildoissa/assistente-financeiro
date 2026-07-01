@@ -1,0 +1,35 @@
+version: '3.7'
+
+services:
+  typebot:
+    image: ghcr.io/baptisteclet/typebot:latest
+    container_name: assessor-typebot
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: 'postgresql://postgres:d0087a71c66d48299a745888cd44b665@postgres:5432/assessor'
+      NEXTAUTH_URL: 'https://bot.assessor.automacao.free.nf'
+      NEXTAUTH_SECRET: 'coloque-uma-chave-segura-aqui-com-32-caracteres'
+      ENCRYPTION_SECRET: 'outra-chave-segura-para-criptografia'
+      OPENAI_API_KEY: 'sk-sua-chave-openai-aqui'
+      DEFAULT_FROM_EMAIL: 'marcos@sigelinformatica.com.br'
+      SMTP_HOST: 'smtp.locaweb.com.br'
+      SMTP_PORT: '465'
+      SMTP_USER: 'marcos@sigelinformatica.com.br'
+      SMTP_PASSWORD: 'vcdmsa77'
+      SMTP_SECURE: 'true'
+      NEXT_PUBLIC_VIEWER_URL: 'https://bot.assessor.automacao.free.nf'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.assessor-typebot.rule=Host(`bot.assessor.automacao.free.nf`)"
+      - "traefik.http.routers.assessor-typebot.service=assessor-typebot"
+      - "traefik.http.services.assessor-typebot.loadbalancer.server.port=3000"
+      - "traefik.http.routers.assessor-typebot.entrypoints=websecure"
+      - "traefik.http.routers.assessor-typebot.tls.certresolver=letsencryptresolver"
+      - "traefik.http.routers.assessor-typebot.tls=true"
+    networks:
+      - interna
+
+networks:
+  interna:
+    external: true
+    name: interna

@@ -1,0 +1,3 @@
+module.exports=[53753,a=>{"use strict";var b=a.i(14738),c=a.i(32657),d=a.i(70613),e=a.i(91585);a.s(["default",0,function(){let{user:a,loading:f}=(0,e.useAuth)(),g=(0,d.useRouter)();return(0,c.useEffect)(()=>{f||g.push(a?"/dashboard":"/login")},[a,f,g]),(0,b.jsx)("div",{className:"min-h-screen flex items-center justify-center",children:(0,b.jsx)("div",{className:"animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full"})})}])}];
+
+//# sourceMappingURL=assistrente-financeiro_apps_frontend_src_app_page_tsx_0t0khvl._.js.map

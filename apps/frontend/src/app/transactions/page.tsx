@@ -1,0 +1,101 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { api } from '../../lib/api-client';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Card, CardContent } from '../../components/ui/card';
+import { Badge } from '../../components/ui/badge';
+import { formatCurrency, formatDate } from '../../lib/utils';
+import type { Transaction } from '../../types/api';
+
+export default function TransactionsPage() {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [typeFilter, setTypeFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  function load() {
+    setLoading(true);
+    const params: Record<string, string> = { page: String(page), limit: '20' };
+    if (typeFilter) params.type = typeFilter;
+
+    api.getTransactions(params)
+      .then(res => {
+        setTransactions(res.data);
+        setTotalPages(res.pages);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => { load(); }, [page, typeFilter]);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Transações</h1>
+        <Button>Nova Transação</Button>
+      </div>
+
+      <div className="flex gap-2">
+        {['', 'income', 'expense'].map(t => (
+          <Button
+            key={t}
+            variant={typeFilter === t ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => { setTypeFilter(t); setPage(1); }}
+          >
+            {t === '' ? 'Todas' : t === 'income' ? 'Receitas' : 'Despesas'}
+          </Button>
+        ))}
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="p-6 text-center text-gray-400">Carregando...</div>
+          ) : transactions.length === 0 ? (
+            <div className="p-6 text-center text-gray-400">Nenhuma transação</div>
+          ) : (
+            <div className="divide-y">
+              {transactions.map(tx => (
+                <div key={tx.id} className="flex items-center justify-between p-4 hover:bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <div className={`h-2 w-2 rounded-full ${tx.type === 'income' ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <div>
+                      <p className="text-sm font-medium">{tx.description || 'Sem descrição'}</p>
+                      <div className="flex gap-2 text-xs text-gray-400">
+                        <span>{formatDate(tx.transactionDate)}</span>
+                        {tx.category && <span>{tx.category.name}</span>}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-sm font-medium ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                      {tx.type === 'income' ? '+' : '-'}{formatCurrency(Number(tx.amount))}
+                    </p>
+                    <Badge variant={tx.status}>{tx.status}</Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
+            Anterior
+          </Button>
+          <span className="flex items-center text-sm text-gray-500">Página {page} de {totalPages}</span>
+          <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+            Próxima
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}

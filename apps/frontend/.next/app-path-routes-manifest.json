@@ -1,0 +1,15 @@
+{
+  "/(authenticated)/page": "/",
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/categories/page": "/categories",
+  "/conversations/page": "/conversations",
+  "/dashboard/page": "/dashboard",
+  "/login/page": "/login",
+  "/page": "/",
+  "/projects/page": "/projects",
+  "/register/page": "/register",
+  "/reminders/page": "/reminders",
+  "/tasks/page": "/tasks",
+  "/transactions/page": "/transactions"
+}

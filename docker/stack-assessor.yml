@@ -1,0 +1,44 @@
+version: '3.8'
+
+networks:
+  traefik_net:
+    external: true
+  assessor_net:
+    driver: bridge
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: assessor-redis
+    restart: unless-stopped
+    networks:
+      - assessor_net
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 3s
+
+  api:
+    image: ${DOCKER_USER}/assessor-api:${TAG:-latest}
+    container_name: assessor-api
+    restart: unless-stopped
+    networks:
+      - traefik_net
+      - assessor_net
+    depends_on:
+      redis:
+        condition: service_healthy
+    env_file:
+      - ./stack-assessor.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.assessor-api.rule=Host(`api.dominio.com`)"
+      - "traefik.http.routers.assessor-api.entrypoints=websecure"
+      - "traefik.http.routers.assessor-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.assessor-api.loadbalancer.server.port=3000"
+      - "traefik.docker.network=traefik_net"
+
+volumes:
+  redis_data:

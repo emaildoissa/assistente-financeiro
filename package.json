@@ -1,0 +1,17 @@
+{
+  "name": "assessor-financeiro",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run start:dev -w apps/api",
+    "build:api": "npm run build -w apps/api",
+    "db:migrate": "npm run prisma:migrate -w apps/api",
+    "db:generate": "npm run prisma:generate -w apps/api",
+    "db:studio": "npm run prisma:studio -w apps/api"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

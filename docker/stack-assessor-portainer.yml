@@ -1,0 +1,50 @@
+version: '3.7'
+
+services:
+  assessor-api:
+    image: emaildoissa/assessor-api:latest
+    container_name: assessor-api
+    restart: unless-stopped
+    environment:
+      PORT: '3000'
+      DATABASE_URL: 'postgresql://postgres:d0087a71c66d48299a745888cd44b665@postgres:5432/assessor'
+      JWT_SECRET: 'k$8#wV@9!y2&XpQ5zL#3mG8*pT1@wZ6Y'
+      REDIS_HOST: 'n8n_redis'
+      REDIS_PORT: '6379'
+      FRONTEND_URL: 'https://app.assessor.automacao.free.nf'
+      N8N_API_KEY: 'e80f766bd5f3a402f21f5c309f102481c6324927413339d8542e0ccd39531a26'
+      STORAGE_DRIVER: 'local'
+      STORAGE_PATH: '/data/uploads'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.assessor-api.rule=Host(`api.assessor.automacao.free.nf`)"
+      - "traefik.http.routers.assessor-api.service=assessor-api"
+      - "traefik.http.services.assessor-api.loadbalancer.server.port=3000"
+      - "traefik.http.routers.assessor-api.entrypoints=websecure"
+      - "traefik.http.routers.assessor-api.tls.certresolver=letsencryptresolver"
+      - "traefik.http.routers.assessor-api.tls=true"
+    networks:
+      - interna
+
+  assessor-worker:
+    image: emaildoissa/assessor-api:latest
+    container_name: assessor-worker
+    restart: unless-stopped
+    command: ["node", "dist/src/worker.js"]
+    environment:
+      DATABASE_URL: 'postgresql://postgres:d0087a71c66d48299a745888cd44b665@postgres:5432/assessor'
+      REDIS_HOST: 'n8n_redis'
+      REDIS_PORT: '6379'
+      JWT_SECRET: 'coloque-uma-chave-segura-aqui-com-32-caracteres'
+      N8N_API_KEY: 'e80f766bd5f3a402f21f5c309f102481c6324927413339d8542e0ccd39531a26'
+      STORAGE_DRIVER: 'local'
+      STORAGE_PATH: '/data/uploads'
+    depends_on:
+      - assessor-api
+    networks:
+      - interna
+
+networks:
+  interna:
+    external: true
+    name: interna

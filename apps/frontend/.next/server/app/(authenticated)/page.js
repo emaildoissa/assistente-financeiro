@@ -1,0 +1,13 @@
+var R=require("../../chunks/ssr/[turbopack]_runtime.js")("server/app/(authenticated)/page.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0jzeols._.js")
+R.c("server/chunks/ssr/0ljr_next_dist_esm_build_templates_app-page_0l4o90x.js")
+R.c("server/chunks/ssr/[root-of-the-server]__1_u-5jz._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__0k_3ak8._.js")
+R.c("server/chunks/ssr/assistrente-financeiro_apps_frontend_src_app_1o2o5fz._.js")
+R.c("server/chunks/ssr/0ljr_next_dist_client_components_0p-t3yp._.js")
+R.c("server/chunks/ssr/0ljr_next_dist_client_components_builtin_forbidden_0tdniue.js")
+R.c("server/chunks/ssr/0ljr_next_dist_client_components_builtin_unauthorized_09u6aif.js")
+R.c("server/chunks/ssr/0ljr_next_dist_client_components_builtin_global-error_1m_uu-s.js")
+R.c("server/chunks/ssr/1323_apps_frontend__next-internal_server_app_(authenticated)_page_actions_0dzgpg6.js")
+R.m(12215)
+module.exports=R.m(12215).exports
