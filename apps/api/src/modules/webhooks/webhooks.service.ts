@@ -2,10 +2,12 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConversationsService } from '../conversations/conversations.service';
 import { TransactionsService } from '../financial/transactions/transactions.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
 interface TypebotPayload {
-  tenantId: string;
-  instanceId: string;
+  tenantId?: string;
+  instanceId?: string;
+  instanceName?: string;
   userPhone: string;
   userName?: string;
   intent: string;
@@ -27,12 +29,33 @@ export class WebhooksService {
     private config: ConfigService,
     private conversations: ConversationsService,
     private transactions: TransactionsService,
+    private prisma: PrismaService,
   ) {
     this.apiKey = this.config.get('N8N_API_KEY', '');
   }
 
   async handleTypebot(data: TypebotPayload) {
-    const { tenantId, instanceId, userPhone, userName, intent, entities } = data;
+    let { tenantId, instanceId, userPhone, userName, intent, entities, instanceName } = data;
+
+    // Se tenantId ou instanceId não foram informados, tenta buscar via instanceName
+    if ((!tenantId || !instanceId) && instanceName) {
+      const instance = await this.prisma.whatsappInstance.findFirst({
+        where: { instanceName, isActive: true },
+      });
+      if (instance) {
+        tenantId = instance.tenantId;
+        instanceId = instance.id;
+      }
+    }
+
+    if (!tenantId) {
+      throw new HttpException('Tenant não identificado ou instância inativa', HttpStatus.BAD_REQUEST);
+    }
+
+    // Normaliza o número de telefone removendo sufixo do JID
+    if (userPhone && userPhone.includes('@')) {
+      userPhone = userPhone.split('@')[0];
+    }
 
     const conversation = await this.conversations.findOrCreate(
       tenantId, instanceId, userPhone, userName,

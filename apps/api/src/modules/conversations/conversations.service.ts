@@ -7,7 +7,7 @@ export class ConversationsService {
 
   async findOrCreate(
     tenantId: string,
-    instanceId: string,
+    instanceId: string | undefined,
     userPhone: string,
     userName?: string,
   ) {
