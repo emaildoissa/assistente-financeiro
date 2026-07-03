@@ -50,7 +50,7 @@ export const api = {
     return request<import('../types/api').PaginatedResponse<import('../types/api').Transaction>>('GET', `/transactions${qs}`);
   },
 
-  createTransaction: (data: Partial<import('../types/api').Transaction>) =>
+  createTransaction: (data: Record<string, any>) =>
     request<import('../types/api').Transaction>('POST', '/transactions', data),
 
   getBalance: () =>
@@ -96,4 +96,7 @@ export const api = {
 
   // Users
   getUsers: () => request<import('../types/api').User[]>('GET', '/users'),
+
+  // Generic helpers
+  del: <T = any>(path: string) => request<T>('DELETE', path),
 };

@@ -1,8 +1,58 @@
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Production
 dist/
+build/
+out/
+.next/
+
+# Environment Variables
 .env
 .env.local
+.env.*
+!.env.example
+.envrc
+
+# Logs
+logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS Files
 .DS_Store
-coverage/
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDEs and Editors
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Monorepo specific
 .turbo/
+
+# Secret/Exported Documents
+typebot-export-*.json
+
+# Vercel
+.vercel/
+
+# TypeScript
+*.tsbuildinfo

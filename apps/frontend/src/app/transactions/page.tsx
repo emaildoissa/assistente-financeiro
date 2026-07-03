@@ -1,12 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { api } from '../../lib/api-client';
 import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
 import { Card, CardContent } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
+import { Dialog } from '../../components/ui/dialog';
+import { TransactionForm } from '../../components/transactions/transaction-form';
+import { useToast } from '../../components/ui/toast';
 import { formatCurrency, formatDate } from '../../lib/utils';
+import { Trash2 } from 'lucide-react';
 import type { Transaction } from '../../types/api';
 
 export default function TransactionsPage() {
@@ -15,8 +18,10 @@ export default function TransactionsPage() {
   const [typeFilter, setTypeFilter] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [showForm, setShowForm] = useState(false);
+  const { toast } = useToast();
 
-  function load() {
+  const load = useCallback(() => {
     setLoading(true);
     const params: Record<string, string> = { page: String(page), limit: '20' };
     if (typeFilter) params.type = typeFilter;
@@ -28,16 +33,38 @@ export default function TransactionsPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
+  }, [page, typeFilter]);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function handleDelete(id: string) {
+    if (!confirm('Tem certeza que deseja excluir esta transação?')) return;
+    try {
+      await api.del(`/transactions/${id}`);
+      toast('Transação excluída', 'success');
+      load();
+    } catch (err) {
+      toast(err instanceof Error ? err.message : 'Erro ao excluir', 'error');
+    }
   }
 
-  useEffect(() => { load(); }, [page, typeFilter]);
+  function handleCreated() {
+    setShowForm(false);
+    toast('Transação registrada com sucesso!', 'success');
+    setPage(1);
+    load();
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Transações</h1>
-        <Button>Nova Transação</Button>
+        <Button onClick={() => setShowForm(true)}>Nova Transação</Button>
       </div>
+
+      <Dialog open={showForm} onClose={() => setShowForm(false)} title="Nova Transação">
+        <TransactionForm onSuccess={handleCreated} onCancel={() => setShowForm(false)} />
+      </Dialog>
 
       <div className="flex gap-2">
         {['', 'income', 'expense'].map(t => (
@@ -61,7 +88,7 @@ export default function TransactionsPage() {
           ) : (
             <div className="divide-y">
               {transactions.map(tx => (
-                <div key={tx.id} className="flex items-center justify-between p-4 hover:bg-gray-50">
+                <div key={tx.id} className="flex items-center justify-between p-4 hover:bg-gray-50 group">
                   <div className="flex items-center gap-3">
                     <div className={`h-2 w-2 rounded-full ${tx.type === 'income' ? 'bg-green-500' : 'bg-red-500'}`} />
                     <div>
@@ -72,11 +99,20 @@ export default function TransactionsPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className={`text-sm font-medium ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                      {tx.type === 'income' ? '+' : '-'}{formatCurrency(Number(tx.amount))}
-                    </p>
-                    <Badge variant={tx.status}>{tx.status}</Badge>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <p className={`text-sm font-medium ${tx.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                        {tx.type === 'income' ? '+' : '-'}{formatCurrency(Number(tx.amount))}
+                      </p>
+                      <Badge variant={tx.status}>{tx.status}</Badge>
+                    </div>
+                    <button
+                      onClick={() => handleDelete(tx.id)}
+                      className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Excluir"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               ))}

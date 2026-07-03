@@ -8,13 +8,16 @@ services:
     environment:
       PORT: '3000'
       DATABASE_URL: 'postgresql://postgres:d0087a71c66d48299a745888cd44b665@postgres:5432/assessor'
-      JWT_SECRET: 'k$8#wV@9!y2&XpQ5zL#3mG8*pT1@wZ6Y'
+      JWT_SECRET: 'k8#wV@9!y2&XpQ5zL#3mG8*pT1@wZ6Y'
       REDIS_HOST: 'n8n_redis'
       REDIS_PORT: '6379'
       FRONTEND_URL: 'https://app.assessor.automacao.free.nf'
       N8N_API_KEY: 'e80f766bd5f3a402f21f5c309f102481c6324927413339d8542e0ccd39531a26'
       STORAGE_DRIVER: 'local'
       STORAGE_PATH: '/data/uploads'
+      AI_PROVIDER: 'gemini'
+      AI_API_KEY: 'YOUR_GEMINI_API_KEY'
+      AI_MODEL: 'gemini-2.5-flash-lite'
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.assessor-api.rule=Host(`api.assessor.automacao.free.nf`)"
@@ -35,10 +38,13 @@ services:
       DATABASE_URL: 'postgresql://postgres:d0087a71c66d48299a745888cd44b665@postgres:5432/assessor'
       REDIS_HOST: 'n8n_redis'
       REDIS_PORT: '6379'
-      JWT_SECRET: 'coloque-uma-chave-segura-aqui-com-32-caracteres'
+      JWT_SECRET: 'k8#wV@9!y2&XpQ5zL#3mG8*pT1@wZ6Y'
       N8N_API_KEY: 'e80f766bd5f3a402f21f5c309f102481c6324927413339d8542e0ccd39531a26'
       STORAGE_DRIVER: 'local'
       STORAGE_PATH: '/data/uploads'
+      AI_PROVIDER: 'gemini'
+      AI_API_KEY: 'YOUR_GEMINI_API_KEY'
+      AI_MODEL: 'gemini-2.5-flash-lite'
     depends_on:
       - assessor-api
     networks:

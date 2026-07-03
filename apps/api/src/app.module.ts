@@ -16,6 +16,7 @@ import { ProjectsModule } from './modules/projects/projects.module';
 import { RemindersModule } from './modules/reminders/reminders.module';
 import { FilesModule } from './modules/files/files.module';
 import { QueueModule } from './modules/queue/queue.module';
+import { AiModule } from './modules/ai/ai.module';
 import { AppController } from './app.controller';
 
 @Module({
@@ -36,6 +37,7 @@ import { AppController } from './app.controller';
     RemindersModule,
     FilesModule,
     QueueModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [

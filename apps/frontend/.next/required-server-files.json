@@ -308,8 +308,8 @@
     },
     "distDirRoot": ".next"
   },
-  "appDir": "C:\\Users\\Marcos Issa\\Documents\\assistrente-financeiro\\apps\\frontend",
-  "relativeAppDir": "assistrente-financeiro\\apps\\frontend",
+  "appDir": "C:\\Users\\Marcos Issa\\Documents\\assistente-financeiro\\apps\\frontend",
+  "relativeAppDir": "assistente-financeiro\\apps\\frontend",
   "files": [
     ".next\\package.json",
     ".next\\routes-manifest.json",

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { ConversationsService } from '../conversations/conversations.service';
 import { TransactionsService } from '../financial/transactions/transactions.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AiService } from '../ai/ai.service';
 
 interface TypebotPayload {
   tenantId?: string;
@@ -10,8 +11,10 @@ interface TypebotPayload {
   instanceName?: string;
   userPhone: string;
   userName?: string;
-  intent: string;
-  entities: Record<string, any>;
+  intent?: string;
+  gemini_response?: string;
+  entities?: Record<string, any>;
+  entities_str?: string;
   rawMessage: string;
 }
 
@@ -30,12 +33,40 @@ export class WebhooksService {
     private conversations: ConversationsService,
     private transactions: TransactionsService,
     private prisma: PrismaService,
+    private ai: AiService,
   ) {
     this.apiKey = this.config.get('N8N_API_KEY', '');
   }
 
   async handleTypebot(data: TypebotPayload) {
-    let { tenantId, instanceId, userPhone, userName, intent, entities, instanceName } = data;
+    let { tenantId, instanceId, userPhone, userName, intent, instanceName } = data;
+    let entities = data.entities || {};
+    
+    if (data.gemini_response) {
+      try {
+        const str = data.gemini_response.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(str);
+        intent = parsed.intent || 'unknown';
+        entities = parsed.entities || {};
+      } catch (e) {
+        intent = 'unknown';
+      }
+    } else if (data.entities_str) {
+      try {
+        entities = JSON.parse(data.entities_str);
+      } catch (e) {}
+    }
+
+    if (!intent && data.rawMessage) {
+      try {
+        const result = await this.ai.classify(data.rawMessage);
+        intent = result.intent;
+        entities = result.entities;
+      } catch (e) {
+        console.error(`[WebhooksService] AI classification error: ${e instanceof Error ? e.message : e}`);
+        intent = 'unknown';
+      }
+    }
 
     // Se tenantId ou instanceId não foram informados, tenta buscar via instanceName
     if ((!tenantId || !instanceId) && instanceName) {
@@ -88,6 +119,11 @@ export class WebhooksService {
         const start = entities.startDate || new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString();
         const summary = await this.transactions.getSummary(tenantId, start, end);
         response = `📊 Resumo (${summary.period.startDate.slice(0, 10)} a ${summary.period.endDate.slice(0, 10)}):\n📈 Receitas: R$ ${summary.totalIncome.toFixed(2)}\n📉 Despesas: R$ ${summary.totalExpense.toFixed(2)}\n📦 ${summary.transactionCount} transações`;
+        break;
+      }
+
+      case 'chat': {
+        response = entities.reply || 'Olá! Sou o seu assessor financeiro. Digite "ajuda" para ver o que posso fazer.';
         break;
       }
 
