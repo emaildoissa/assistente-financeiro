@@ -56,3 +56,4 @@ typebot-export-*.json
 
 # TypeScript
 *.tsbuildinfo
+docker/stack*.yml  
