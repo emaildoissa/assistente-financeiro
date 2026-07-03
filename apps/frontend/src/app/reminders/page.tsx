@@ -9,13 +9,14 @@ import { Dialog } from '../../components/ui/dialog';
 import { ReminderForm } from '../../components/reminders/reminder-form';
 import { useToast } from '../../components/ui/toast';
 import { formatDate } from '../../lib/utils';
-import { Bell, Trash2 } from 'lucide-react';
+import { Bell, Pencil, Trash2 } from 'lucide-react';
 import type { Reminder } from '../../types/api';
 
 export default function RemindersPage() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingReminder, setEditingReminder] = useState<Reminder | undefined>(undefined);
   const { toast } = useToast();
 
   const load = useCallback(() => {
@@ -43,11 +44,11 @@ export default function RemindersPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Lembretes</h1>
-        <Button onClick={() => setShowForm(true)}>Novo Lembrete</Button>
+        <Button onClick={() => { setEditingReminder(undefined); setShowForm(true); }}>Novo Lembrete</Button>
       </div>
 
-      <Dialog open={showForm} onClose={() => setShowForm(false)} title="Novo Lembrete">
-        <ReminderForm onSuccess={() => { setShowForm(false); toast('Lembrete criado!', 'success'); load(); }} onCancel={() => setShowForm(false)} />
+      <Dialog open={showForm} onClose={() => { setShowForm(false); setEditingReminder(undefined); }} title={editingReminder ? 'Editar Lembrete' : 'Novo Lembrete'}>
+        <ReminderForm onSuccess={() => { setShowForm(false); setEditingReminder(undefined); toast(editingReminder ? 'Lembrete atualizado!' : 'Lembrete criado!', 'success'); load(); }} onCancel={() => { setShowForm(false); setEditingReminder(undefined); }} reminder={editingReminder} />
       </Dialog>
 
       <Card>
@@ -74,6 +75,13 @@ export default function RemindersPage() {
                         {rem.isSent ? 'Enviado' : 'Pendente'}
                       </Badge>
                     </div>
+                    <button
+                      onClick={() => { setEditingReminder(rem); setShowForm(true); }}
+                      className="text-gray-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Editar"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
                     <button
                       onClick={() => handleDelete(rem.id)}
                       className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"

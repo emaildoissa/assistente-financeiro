@@ -4,19 +4,21 @@ import { useState, useEffect } from 'react';
 import { api } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import type { Project } from '../../types/api';
+import type { Project, Task } from '../../types/api';
 
 interface TaskFormProps {
   onSuccess: () => void;
   onCancel: () => void;
+  task?: Task;
 }
 
-export function TaskForm({ onSuccess, onCancel }: TaskFormProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'urgent'>('medium');
-  const [dueDate, setDueDate] = useState('');
-  const [projectId, setProjectId] = useState('');
+export function TaskForm({ onSuccess, onCancel, task }: TaskFormProps) {
+  const isEdit = !!task;
+  const [title, setTitle] = useState(task?.title || '');
+  const [description, setDescription] = useState(task?.description || '');
+  const [priority, setPriority] = useState<'low' | 'medium' | 'high' | 'urgent'>((task?.priority as any) || 'medium');
+  const [dueDate, setDueDate] = useState(task?.dueDate ? task.dueDate.slice(0, 10) : '');
+  const [projectId, setProjectId] = useState(task?.project?.id || '');
   const [projects, setProjects] = useState<Project[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -29,13 +31,18 @@ export function TaskForm({ onSuccess, onCancel }: TaskFormProps) {
     if (!title) return;
     setSaving(true);
     try {
-      await api.createTask({
+      const body = {
         title,
         description: description || undefined,
         priority,
         dueDate: dueDate || undefined,
         projectId: projectId || undefined,
-      } as any);
+      };
+      if (isEdit) {
+        await api.updateTask(task!.id, body);
+      } else {
+        await api.createTask(body as any);
+      }
       onSuccess();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Erro ao salvar');
@@ -105,7 +112,7 @@ export function TaskForm({ onSuccess, onCancel }: TaskFormProps) {
       <div className="flex gap-2 justify-end pt-2">
         <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
         <Button type="submit" disabled={saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
+          {saving ? 'Salvando...' : isEdit ? 'Atualizar' : 'Salvar'}
         </Button>
       </div>
     </form>

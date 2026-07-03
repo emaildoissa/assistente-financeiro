@@ -4,19 +4,25 @@ import { useState, useEffect } from 'react';
 import { api } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import type { Category } from '../../types/api';
+import type { Category, Transaction } from '../../types/api';
 
 interface TransactionFormProps {
   onSuccess: () => void;
   onCancel: () => void;
+  transaction?: Transaction;
 }
 
-export function TransactionForm({ onSuccess, onCancel }: TransactionFormProps) {
-  const [type, setType] = useState<'income' | 'expense'>('expense');
-  const [amount, setAmount] = useState('');
-  const [description, setDescription] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+export function TransactionForm({ onSuccess, onCancel, transaction }: TransactionFormProps) {
+  const isEdit = !!transaction;
+  const [type, setType] = useState<'income' | 'expense'>((transaction?.type as any) || 'expense');
+  const [amount, setAmount] = useState(transaction ? String(transaction.amount) : '');
+  const [description, setDescription] = useState(transaction?.description || '');
+  const [categoryId, setCategoryId] = useState(transaction?.category?.id || '');
+  const [date, setDate] = useState(
+    transaction
+      ? transaction.transactionDate.slice(0, 10)
+      : new Date().toISOString().slice(0, 10),
+  );
   const [categories, setCategories] = useState<Category[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -29,13 +35,18 @@ export function TransactionForm({ onSuccess, onCancel }: TransactionFormProps) {
     if (!amount || !description) return;
     setSaving(true);
     try {
-      await api.createTransaction({
+      const body = {
         type,
         amount: Number(amount),
         description,
         categoryId: categoryId || undefined,
         transactionDate: new Date(date).toISOString(),
-      } as any);
+      };
+      if (isEdit) {
+        await api.updateTransaction(transaction!.id, body);
+      } else {
+        await api.createTransaction(body);
+      }
       onSuccess();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Erro ao salvar');
@@ -109,7 +120,7 @@ export function TransactionForm({ onSuccess, onCancel }: TransactionFormProps) {
       <div className="flex gap-2 justify-end pt-2">
         <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
         <Button type="submit" disabled={saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
+          {saving ? 'Salvando...' : isEdit ? 'Atualizar' : 'Salvar'}
         </Button>
       </div>
     </form>

@@ -8,13 +8,14 @@ import { Badge } from '../../components/ui/badge';
 import { Dialog } from '../../components/ui/dialog';
 import { ProjectForm } from '../../components/projects/project-form';
 import { useToast } from '../../components/ui/toast';
-import { Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import type { Project } from '../../types/api';
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | undefined>(undefined);
   const { toast } = useToast();
 
   const load = useCallback(() => {
@@ -42,11 +43,11 @@ export default function ProjectsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Projetos</h1>
-        <Button onClick={() => setShowForm(true)}>Novo Projeto</Button>
+        <Button onClick={() => { setEditingProject(undefined); setShowForm(true); }}>Novo Projeto</Button>
       </div>
 
-      <Dialog open={showForm} onClose={() => setShowForm(false)} title="Novo Projeto">
-        <ProjectForm onSuccess={() => { setShowForm(false); toast('Projeto criado!', 'success'); load(); }} onCancel={() => setShowForm(false)} />
+      <Dialog open={showForm} onClose={() => { setShowForm(false); setEditingProject(undefined); }} title={editingProject ? 'Editar Projeto' : 'Novo Projeto'}>
+        <ProjectForm onSuccess={() => { setShowForm(false); setEditingProject(undefined); toast(editingProject ? 'Projeto atualizado!' : 'Projeto criado!', 'success'); load(); }} onCancel={() => { setShowForm(false); setEditingProject(undefined); }} project={editingProject} />
       </Dialog>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -60,6 +61,13 @@ export default function ProjectsPage() {
               <div className="h-3 w-3 rounded-full" style={{ backgroundColor: project.color || '#ccc' }} />
               <CardTitle className="text-base flex-1">{project.name}</CardTitle>
               <Badge variant={project.status}>{project.status}</Badge>
+              <button
+                onClick={() => { setEditingProject(project); setShowForm(true); }}
+                className="text-gray-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                title="Editar"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
               <button
                 onClick={() => handleDelete(project.id)}
                 className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"

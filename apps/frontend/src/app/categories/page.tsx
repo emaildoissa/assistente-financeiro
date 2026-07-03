@@ -8,13 +8,14 @@ import { Badge } from '../../components/ui/badge';
 import { Dialog } from '../../components/ui/dialog';
 import { CategoryForm } from '../../components/categories/category-form';
 import { useToast } from '../../components/ui/toast';
-import { Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import type { Category } from '../../types/api';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | undefined>(undefined);
   const { toast } = useToast();
 
   const load = useCallback(() => {
@@ -42,11 +43,11 @@ export default function CategoriesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Categorias</h1>
-        <Button onClick={() => setShowForm(true)}>Nova Categoria</Button>
+        <Button onClick={() => { setEditingCategory(undefined); setShowForm(true); }}>Nova Categoria</Button>
       </div>
 
-      <Dialog open={showForm} onClose={() => setShowForm(false)} title="Nova Categoria">
-        <CategoryForm onSuccess={() => { setShowForm(false); toast('Categoria criada!', 'success'); load(); }} onCancel={() => setShowForm(false)} />
+      <Dialog open={showForm} onClose={() => { setShowForm(false); setEditingCategory(undefined); }} title={editingCategory ? 'Editar Categoria' : 'Nova Categoria'}>
+        <CategoryForm onSuccess={() => { setShowForm(false); setEditingCategory(undefined); toast(editingCategory ? 'Categoria atualizada!' : 'Categoria criada!', 'success'); load(); }} onCancel={() => { setShowForm(false); setEditingCategory(undefined); }} category={editingCategory} />
       </Dialog>
 
       <Card>
@@ -67,6 +68,13 @@ export default function CategoriesPage() {
                     <Badge variant={cat.type === 'income' ? 'income' : cat.type === 'expense' ? 'expense' : 'default'}>
                       {cat.type === 'income' ? 'Receita' : cat.type === 'expense' ? 'Despesa' : 'Ambos'}
                     </Badge>
+                    <button
+                      onClick={() => { setEditingCategory(cat); setShowForm(true); }}
+                      className="text-gray-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Editar"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
                     <button
                       onClick={() => handleDelete(cat.id)}
                       className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"

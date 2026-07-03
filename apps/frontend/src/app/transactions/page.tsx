@@ -9,7 +9,7 @@ import { Dialog } from '../../components/ui/dialog';
 import { TransactionForm } from '../../components/transactions/transaction-form';
 import { useToast } from '../../components/ui/toast';
 import { formatCurrency, formatDate } from '../../lib/utils';
-import { Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import type { Transaction } from '../../types/api';
 
 export default function TransactionsPage() {
@@ -19,6 +19,7 @@ export default function TransactionsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [showForm, setShowForm] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
   const { toast } = useToast();
 
   const load = useCallback(() => {
@@ -48,22 +49,33 @@ export default function TransactionsPage() {
     }
   }
 
-  function handleCreated() {
+  function handleSaved() {
     setShowForm(false);
-    toast('Transação registrada com sucesso!', 'success');
+    setEditingTransaction(undefined);
+    toast(editingTransaction ? 'Transação atualizada!' : 'Transação registrada!', 'success');
     setPage(1);
     load();
+  }
+
+  function openCreate() {
+    setEditingTransaction(undefined);
+    setShowForm(true);
+  }
+
+  function openEdit(tx: Transaction) {
+    setEditingTransaction(tx);
+    setShowForm(true);
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Transações</h1>
-        <Button onClick={() => setShowForm(true)}>Nova Transação</Button>
+        <Button onClick={openCreate}>Nova Transação</Button>
       </div>
 
-      <Dialog open={showForm} onClose={() => setShowForm(false)} title="Nova Transação">
-        <TransactionForm onSuccess={handleCreated} onCancel={() => setShowForm(false)} />
+      <Dialog open={showForm} onClose={() => { setShowForm(false); setEditingTransaction(undefined); }} title={editingTransaction ? 'Editar Transação' : 'Nova Transação'}>
+        <TransactionForm onSuccess={handleSaved} onCancel={() => { setShowForm(false); setEditingTransaction(undefined); }} transaction={editingTransaction} />
       </Dialog>
 
       <div className="flex gap-2">
@@ -106,6 +118,13 @@ export default function TransactionsPage() {
                       </p>
                       <Badge variant={tx.status}>{tx.status}</Badge>
                     </div>
+                    <button
+                      onClick={() => openEdit(tx)}
+                      className="text-gray-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Editar"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
                     <button
                       onClick={() => handleDelete(tx.id)}
                       className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"

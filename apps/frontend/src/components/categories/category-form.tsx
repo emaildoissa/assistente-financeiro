@@ -4,16 +4,19 @@ import { useState } from 'react';
 import { api } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import type { Category } from '../../types/api';
 
 interface CategoryFormProps {
   onSuccess: () => void;
   onCancel: () => void;
+  category?: Category;
 }
 
-export function CategoryForm({ onSuccess, onCancel }: CategoryFormProps) {
-  const [name, setName] = useState('');
-  const [type, setType] = useState<'income' | 'expense' | 'both'>('expense');
-  const [color, setColor] = useState('#6366f1');
+export function CategoryForm({ onSuccess, onCancel, category }: CategoryFormProps) {
+  const isEdit = !!category;
+  const [name, setName] = useState(category?.name || '');
+  const [type, setType] = useState<'income' | 'expense' | 'both'>((category?.type as any) || 'expense');
+  const [color, setColor] = useState(category?.color || '#6366f1');
   const [saving, setSaving] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -21,7 +24,12 @@ export function CategoryForm({ onSuccess, onCancel }: CategoryFormProps) {
     if (!name) return;
     setSaving(true);
     try {
-      await api.createCategory({ name, type, color } as any);
+      const body = { name, type, color };
+      if (isEdit) {
+        await api.updateCategory(category!.id, body);
+      } else {
+        await api.createCategory(body as any);
+      }
       onSuccess();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Erro ao salvar');
@@ -68,7 +76,7 @@ export function CategoryForm({ onSuccess, onCancel }: CategoryFormProps) {
       <div className="flex gap-2 justify-end pt-2">
         <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
         <Button type="submit" disabled={saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
+          {saving ? 'Salvando...' : isEdit ? 'Atualizar' : 'Salvar'}
         </Button>
       </div>
     </form>

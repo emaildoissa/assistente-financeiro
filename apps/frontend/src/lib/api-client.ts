@@ -53,6 +53,9 @@ export const api = {
   createTransaction: (data: Record<string, any>) =>
     request<import('../types/api').Transaction>('POST', '/transactions', data),
 
+  updateTransaction: (id: string, data: Record<string, any>) =>
+    request<import('../types/api').Transaction>('PUT', `/transactions/${id}`, data),
+
   getBalance: () =>
     request<{ income: number; expense: number; balance: number }>('GET', '/transactions/balance'),
 
@@ -65,6 +68,9 @@ export const api = {
 
   createCategory: (data: Partial<import('../types/api').Category>) =>
     request<import('../types/api').Category>('POST', '/categories', data),
+
+  updateCategory: (id: string, data: Record<string, any>) =>
+    request<import('../types/api').Category>('PUT', `/categories/${id}`, data),
 
   // Tasks
   getTasks: (status?: string) =>
@@ -83,12 +89,18 @@ export const api = {
   createProject: (data: Partial<import('../types/api').Project>) =>
     request<import('../types/api').Project>('POST', '/projects', data),
 
+  updateProject: (id: string, data: Record<string, any>) =>
+    request<import('../types/api').Project>('PUT', `/projects/${id}`, data),
+
   // Reminders
   getReminders: () =>
     request<import('../types/api').Reminder[]>('GET', '/reminders'),
 
   createReminder: (data: Partial<import('../types/api').Reminder>) =>
     request<import('../types/api').Reminder>('POST', '/reminders', data),
+
+  updateReminder: (id: string, data: Record<string, any>) =>
+    request<import('../types/api').Reminder>('PUT', `/reminders/${id}`, data),
 
   // Conversations
   getConversations: () =>

@@ -4,17 +4,20 @@ import { useState } from 'react';
 import { api } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import type { Project } from '../../types/api';
 
 interface ProjectFormProps {
   onSuccess: () => void;
   onCancel: () => void;
+  project?: Project;
 }
 
-export function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [color, setColor] = useState('#6366f1');
-  const [budget, setBudget] = useState('');
+export function ProjectForm({ onSuccess, onCancel, project }: ProjectFormProps) {
+  const isEdit = !!project;
+  const [name, setName] = useState(project?.name || '');
+  const [description, setDescription] = useState(project?.description || '');
+  const [color, setColor] = useState(project?.color || '#6366f1');
+  const [budget, setBudget] = useState(project?.budget ? String(project.budget) : '');
   const [saving, setSaving] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -22,12 +25,17 @@ export function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
     if (!name) return;
     setSaving(true);
     try {
-      await api.createProject({
+      const body = {
         name,
         description: description || undefined,
         color,
         budget: budget ? Number(budget) : undefined,
-      } as any);
+      };
+      if (isEdit) {
+        await api.updateProject(project!.id, body);
+      } else {
+        await api.createProject(body as any);
+      }
       onSuccess();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Erro ao salvar');
@@ -82,7 +90,7 @@ export function ProjectForm({ onSuccess, onCancel }: ProjectFormProps) {
       <div className="flex gap-2 justify-end pt-2">
         <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
         <Button type="submit" disabled={saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
+          {saving ? 'Salvando...' : isEdit ? 'Atualizar' : 'Salvar'}
         </Button>
       </div>
     </form>

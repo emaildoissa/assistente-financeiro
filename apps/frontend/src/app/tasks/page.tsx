@@ -9,13 +9,14 @@ import { Dialog } from '../../components/ui/dialog';
 import { TaskForm } from '../../components/tasks/task-form';
 import { useToast } from '../../components/ui/toast';
 import { formatDate } from '../../lib/utils';
-import { CheckCircle2, Circle, Trash2 } from 'lucide-react';
+import { CheckCircle2, Circle, Pencil, Trash2 } from 'lucide-react';
 import type { Task } from '../../types/api';
 
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
   const { toast } = useToast();
 
   const load = useCallback(() => {
@@ -49,11 +50,11 @@ export default function TasksPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Tarefas</h1>
-        <Button onClick={() => setShowForm(true)}>Nova Tarefa</Button>
+        <Button onClick={() => { setEditingTask(undefined); setShowForm(true); }}>Nova Tarefa</Button>
       </div>
 
-      <Dialog open={showForm} onClose={() => setShowForm(false)} title="Nova Tarefa">
-        <TaskForm onSuccess={() => { setShowForm(false); toast('Tarefa criada!', 'success'); load(); }} onCancel={() => setShowForm(false)} />
+      <Dialog open={showForm} onClose={() => { setShowForm(false); setEditingTask(undefined); }} title={editingTask ? 'Editar Tarefa' : 'Nova Tarefa'}>
+        <TaskForm onSuccess={() => { setShowForm(false); setEditingTask(undefined); toast(editingTask ? 'Tarefa atualizada!' : 'Tarefa criada!', 'success'); load(); }} onCancel={() => { setShowForm(false); setEditingTask(undefined); }} task={editingTask} />
       </Dialog>
 
       <Card>
@@ -84,6 +85,13 @@ export default function TasksPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant={task.status}>{task.status.replace('_', ' ')}</Badge>
+                    <button
+                      onClick={() => { setEditingTask(task); setShowForm(true); }}
+                      className="text-gray-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Editar"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
                     <button
                       onClick={() => handleDelete(task.id)}
                       className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"

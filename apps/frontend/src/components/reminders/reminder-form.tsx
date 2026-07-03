@@ -4,17 +4,20 @@ import { useState } from 'react';
 import { api } from '../../lib/api-client';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import type { Reminder } from '../../types/api';
 
 interface ReminderFormProps {
   onSuccess: () => void;
   onCancel: () => void;
+  reminder?: Reminder;
 }
 
-export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [remindAt, setRemindAt] = useState('');
-  const [remindTime, setRemindTime] = useState('09:00');
+export function ReminderForm({ onSuccess, onCancel, reminder }: ReminderFormProps) {
+  const isEdit = !!reminder;
+  const [title, setTitle] = useState(reminder?.title || '');
+  const [description, setDescription] = useState(reminder?.description || '');
+  const [remindAt, setRemindAt] = useState(reminder ? reminder.remindAt.slice(0, 10) : '');
+  const [remindTime, setRemindTime] = useState(reminder ? reminder.remindAt.slice(11, 16) : '09:00');
   const [saving, setSaving] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -23,11 +26,16 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
     setSaving(true);
     try {
       const remindAtISO = new Date(`${remindAt}T${remindTime}:00`).toISOString();
-      await api.createReminder({
+      const body = {
         title,
         description: description || undefined,
         remindAt: remindAtISO,
-      } as any);
+      };
+      if (isEdit) {
+        await api.updateReminder(reminder!.id, body);
+      } else {
+        await api.createReminder(body as any);
+      }
       onSuccess();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Erro ao salvar');
@@ -79,7 +87,7 @@ export function ReminderForm({ onSuccess, onCancel }: ReminderFormProps) {
       <div className="flex gap-2 justify-end pt-2">
         <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
         <Button type="submit" disabled={saving}>
-          {saving ? 'Salvando...' : 'Salvar'}
+          {saving ? 'Salvando...' : isEdit ? 'Atualizar' : 'Salvar'}
         </Button>
       </div>
     </form>
