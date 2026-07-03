@@ -7,8 +7,13 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api/v1');
 
+  const frontendUrl = process.env.FRONTEND_URL || '*';
+  const origin = frontendUrl.includes(',')
+    ? frontendUrl.split(',').map(s => s.trim())
+    : frontendUrl;
+
   app.enableCors({
-    origin: process.env.FRONTEND_URL || '*',
+    origin,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   });
