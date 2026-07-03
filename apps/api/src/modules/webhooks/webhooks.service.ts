@@ -11,6 +11,7 @@ interface TypebotPayload {
   instanceName?: string;
   userPhone: string;
   userName?: string;
+  remoteJid?: string;
   intent?: string;
   gemini_response?: string;
   entities?: Record<string, any>;
@@ -39,7 +40,7 @@ export class WebhooksService {
   }
 
   async handleTypebot(data: TypebotPayload) {
-    let { tenantId, instanceId, userPhone, userName, intent, instanceName } = data;
+    let { tenantId, instanceId, userPhone, userName, intent, instanceName, remoteJid } = data;
     let entities = data.entities || {};
     
     if (data.gemini_response) {
@@ -83,8 +84,10 @@ export class WebhooksService {
       throw new HttpException('Tenant não identificado ou instância inativa', HttpStatus.BAD_REQUEST);
     }
 
-    // Normaliza o número de telefone removendo sufixo do JID
-    if (userPhone && userPhone.includes('@')) {
+    // Normaliza o número de telefone
+    if (!userPhone && remoteJid) {
+      userPhone = remoteJid.split('@')[0];
+    } else if (userPhone && userPhone.includes('@')) {
       userPhone = userPhone.split('@')[0];
     }
 
