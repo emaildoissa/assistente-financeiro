@@ -6,6 +6,7 @@ docker login
 cd apps\api
 
 # 3. Fazer o build da imagem -> raiz do programa 
+docker build -f apps/api/Dockerfile -t emaildoissa/assessor-api:latest --no-cache .
 docker build -t emaildoissa/assessor-api:latest -f apps/api/Dockerfile .
 
 # 4. Enviar (push) a imagem para o Docker Hub
