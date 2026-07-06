@@ -22,26 +22,18 @@ interface TypebotPayload {
   rawMessage: string;
 }
 
-interface EvolutionPayload {
-  event?: string;
-  instance?: string;
-  data?: {
-    key?: { remoteJid?: string; fromMe?: boolean; id?: string };
-    pushName?: string;
-    message?: Record<string, any>;
-    messageType?: string;
-  };
-}
-
 interface N8nPayload {
   tenantId: string;
   action: string;
   payload: Record<string, any>;
+  apiKey?: string;
 }
 
 @Injectable()
 export class WebhooksService {
   private n8nApiKey: string;
+  private defaultTenantId: string;
+  private defaultInstanceId: string;
 
   constructor(
     private config: ConfigService,
@@ -52,6 +44,8 @@ export class WebhooksService {
     private evolution: EvolutionService,
   ) {
     this.n8nApiKey = this.config.get('N8N_API_KEY', '');
+    this.defaultTenantId = this.config.get('DEFAULT_TENANT_ID', '');
+    this.defaultInstanceId = this.config.get('DEFAULT_INSTANCE_ID', '');
   }
 
   private isGreetingOnly(msg: string): boolean {
@@ -63,13 +57,10 @@ export class WebhooksService {
       'bom dia', 'boa tarde', 'boa noite',
       'e aí', 'e ai', 'tudo bem', 'tudo bom',
     ];
-
     const botNames = ['assessor', 'bot', 'assistente', 'assistente financeiro'];
 
-    // Ex: "ola", "oi", "bom dia", "e aí"
     if (greetings.includes(clean)) return true;
 
-    // Ex: "ola assessor", "bom dia bot", "oi assistente financeiro"
     const words = clean.split(/\s+/);
     if (greetings.includes(words[0])) {
       const rest = words.slice(1).join(' ');
@@ -101,17 +92,19 @@ export class WebhooksService {
     let { tenantId, instanceId, userPhone, userName, intent, instanceName, remoteJid } = data;
     let entities = data.entities || {};
 
-    // Normaliza rawMessage: aceita body como fallback se rawMessage vier vazio/unknown
+    // Normaliza rawMessage: aceita body como fallback
     let rawMessage = data.rawMessage;
     if (!rawMessage || rawMessage === 'unknown') {
       rawMessage = data.body || '';
     }
 
-    // Guard anti-loop: ignora payloads vazios (Typebot re-enviando sem input)
+    // Guard anti-loop: ignora payloads vazios
     if (!rawMessage && !data.audioUrl) {
+      console.log('[WebhooksService] Payload vazio ignorado');
       return { received: true, ignored: true };
     }
 
+    // Parse de intent/entities pré-processados
     if (data.gemini_response) {
       try {
         const str = data.gemini_response.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -127,7 +120,8 @@ export class WebhooksService {
       } catch {}
     }
 
-    // Resolve tenant/instance
+    // ── Resolve tenant/instance ──────────────────────────────────────────────
+    // 1º: tenta pelo instanceName no banco
     if ((!tenantId || !instanceId) && instanceName) {
       const instance = await this.prisma.whatsappInstance.findFirst({
         where: { instanceName, isActive: true },
@@ -135,12 +129,31 @@ export class WebhooksService {
       if (instance) {
         tenantId = instance.tenantId;
         instanceId = instance.id;
+        console.log(`[WebhooksService] Tenant resolvido pelo instanceName "${instanceName}": ${tenantId}`);
+      } else {
+        console.warn(`[WebhooksService] WhatsappInstance "${instanceName}" não encontrada no banco.`);
       }
     }
 
-    if (!tenantId) {
-      throw new HttpException('Tenant não identificado ou instância inativa', HttpStatus.BAD_REQUEST);
+    // 2º fallback: usa DEFAULT_TENANT_ID da env var
+    if (!tenantId && this.defaultTenantId) {
+      tenantId = this.defaultTenantId;
+      instanceId = instanceId || this.defaultInstanceId || undefined;
+      console.log(`[WebhooksService] Usando DEFAULT_TENANT_ID como fallback: ${tenantId}`);
     }
+
+    if (!tenantId) {
+      console.error(`[WebhooksService] ERRO CRÍTICO: Tenant não identificado!`, {
+        instanceName,
+        userPhone,
+        hint: 'Cadastre a WhatsappInstance no banco OU defina DEFAULT_TENANT_ID na env',
+      });
+      throw new HttpException(
+        'Tenant não identificado. Cadastre a WhatsappInstance ou defina DEFAULT_TENANT_ID na env.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    // ─────────────────────────────────────────────────────────────────────────
 
     // Normaliza telefone
     if (!userPhone && remoteJid) {
@@ -148,17 +161,20 @@ export class WebhooksService {
     } else if (userPhone && userPhone.includes('@')) {
       userPhone = userPhone.split('@')[0];
     }
+    if (!userPhone) {
+      userPhone = 'unknown';
+    }
 
     const conversation = await this.conversations.findOrCreate(
       tenantId, instanceId, userPhone, userName,
     );
 
-    // Log da mensagem do usuário
+    // Salva mensagem do usuário
     await this.conversations.addMessage(conversation.id, tenantId, 'user', rawMessage || '[áudio]', {
       type: data.audioUrl ? 'audio' : 'text',
     });
 
-    // Step 1: Greeting detection (antes de chamar IA)
+    // Step 1: Greeting detection (sem chamar IA)
     console.log(`[WebhooksService] rawMessage="${rawMessage}" phone="${userPhone}" intent="${intent}" isGreeting=${this.isGreetingOnly(rawMessage)}`);
     if (!intent && rawMessage && this.isGreetingOnly(rawMessage)) {
       const greetingResponse = 'Em que posso ajudar?';
@@ -166,7 +182,7 @@ export class WebhooksService {
       return { response: greetingResponse, conversationId: conversation.id };
     }
 
-    // Step 2: Audio support
+    // Step 2: Download de áudio
     let audioInput: { base64: string; mimeType: string } | undefined;
     if (data.audioUrl) {
       try {
@@ -176,7 +192,7 @@ export class WebhooksService {
       }
     }
 
-    // Step 3: AI classification (se não veio intent do Typebot)
+    // Step 3: Classificação via IA
     if (!intent && (rawMessage || audioInput)) {
       try {
         const result = await this.ai.classify(rawMessage, audioInput);
@@ -200,13 +216,19 @@ export class WebhooksService {
           categoryId: entities.categoryId,
           source: 'whatsapp',
         });
-        response = `✅ Lançamento registrado: ${tx.type === 'income' ? 'Receita' : 'Despesa'} de R$ ${tx.amount}`;
+        const tipo = tx.type === 'income' ? '📈 Receita' : '📉 Despesa';
+        const valor = Number(tx.amount).toFixed(2).replace('.', ',');
+        response = `✅ Registrado: ${tipo} de R$ ${valor}${tx.description ? ` — ${tx.description}` : ''}`;
         break;
       }
 
       case 'get_balance': {
         const balance = await this.transactions.getBalance(tenantId);
-        response = `💰 Saldo: R$ ${balance.balance.toFixed(2)}\n📈 Receitas: R$ ${balance.income.toFixed(2)}\n📉 Despesas: R$ ${balance.expense.toFixed(2)}`;
+        response = [
+          `💰 Saldo: R$ ${balance.balance.toFixed(2).replace('.', ',')}`,
+          `📈 Receitas: R$ ${balance.income.toFixed(2).replace('.', ',')}`,
+          `📉 Despesas: R$ ${balance.expense.toFixed(2).replace('.', ',')}`,
+        ].join('\n');
         break;
       }
 
@@ -214,22 +236,25 @@ export class WebhooksService {
         const end = entities.endDate || new Date().toISOString();
         const start = entities.startDate || new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString();
         const summary = await this.transactions.getSummary(tenantId, start, end);
-        response = `📊 Resumo (${summary.period.startDate.slice(0, 10)} a ${summary.period.endDate.slice(0, 10)}):\n📈 Receitas: R$ ${summary.totalIncome.toFixed(2)}\n📉 Despesas: R$ ${summary.totalExpense.toFixed(2)}\n📦 ${summary.transactionCount} transações`;
+        response = [
+          `📊 Resumo (${summary.period.startDate.slice(0, 10)} a ${summary.period.endDate.slice(0, 10)}):`,
+          `📈 Receitas: R$ ${summary.totalIncome.toFixed(2).replace('.', ',')}`,
+          `📉 Despesas: R$ ${summary.totalExpense.toFixed(2).replace('.', ',')}`,
+          `📦 ${summary.transactionCount} transações`,
+        ].join('\n');
         break;
       }
 
       case 'chat': {
-        response = entities.reply || 'Olá! Sou o seu assessor financeiro.';
+        response = entities.reply || 'Olá! Sou o seu assessor financeiro. Como posso ajudar?';
         break;
       }
 
       default:
-        response = '❓ Não entendi. Digite "ajuda" para ver os comandos disponíveis.';
+        response = '❓ Não entendi. Tente: "gastei 50 com uber", "meu saldo", ou "resumo do mês".';
     }
 
-    await this.conversations.addMessage(
-      conversation.id, tenantId, 'assistant', response,
-    );
+    await this.conversations.addMessage(conversation.id, tenantId, 'assistant', response);
 
     return { response, conversationId: conversation.id };
   }
@@ -265,7 +290,6 @@ export class WebhooksService {
 
     if (!rawMessage && !audioUrl) return { received: true, ignored: true };
 
-    // Reusa handleTypebot (greeting, IA, intents — sem duplicação)
     const typebotPayload: TypebotPayload = {
       userPhone,
       userName: pushName,
@@ -276,15 +300,17 @@ export class WebhooksService {
     };
     const result = await this.handleTypebot(typebotPayload);
 
-    // Envio da resposta via Evolution API
-    await this.evolution.sendText(instanceName, userPhone, result.response);
+    // Envia resposta via Evolution API
+    if (result.response) {
+      await this.evolution.sendText(instanceName, userPhone, result.response);
+    }
     return result;
   }
 
-  async handleN8n(data: N8nPayload) {
-    if (this.n8nApiKey) {
-      return { received: true, action: data.action };
+  async handleN8n(data: N8nPayload, incomingApiKey?: string) {
+    if (this.n8nApiKey && incomingApiKey !== this.n8nApiKey) {
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
     }
-    throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    return { received: true, action: data.action };
   }
 }
