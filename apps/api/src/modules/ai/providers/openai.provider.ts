@@ -1,21 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AiProvider, AiClassification } from '../interfaces/ai-provider.interface';
+import { AiProvider, AiClassification, AudioInput } from '../interfaces/ai-provider.interface';
 
-@Injectable()
-export class OpenAiProvider implements AiProvider {
-  private apiKey: string;
-  private model: string;
-
-  constructor(private config: ConfigService) {
-    this.apiKey = this.config.get('AI_API_KEY', '');
-    this.model = this.config.get('AI_MODEL', 'gpt-4o-mini');
-  }
-
-  async classify(message: string): Promise<AiClassification> {
-    const url = 'https://api.openai.com/v1/chat/completions';
-
-    const systemPrompt = `Você é um assessor financeiro gentil pelo WhatsApp. Retorne SEMPRE APENAS um JSON puro sem formatação markdown.
+const DEFAULT_PROMPT = `Você é um assessor financeiro gentil pelo WhatsApp. Retorne SEMPRE APENAS um JSON puro sem formatação markdown.
 
 Intenções disponíveis:
 - "create_transaction": Lançar receita ou despesa. Entities: type ("income"/"expense"), amount (number), description (string), categoryId (string, opcional), date (ISO string, opcional)
@@ -36,6 +23,25 @@ Resposta: {"intent": "get_balance", "entities": {}}
 Mensagem: "resumo do mes"
 Resposta: {"intent": "get_summary", "entities": {}}`;
 
+@Injectable()
+export class OpenAiProvider implements AiProvider {
+  private apiKey: string;
+  private model: string;
+  private systemPrompt: string;
+
+  constructor(private config: ConfigService) {
+    this.apiKey = this.config.get('AI_API_KEY', '');
+    this.model = this.config.get('AI_MODEL', 'gpt-4o-mini');
+    this.systemPrompt = this.config.get('AI_SYSTEM_PROMPT') || DEFAULT_PROMPT;
+  }
+
+  async classify(message: string, audio?: AudioInput): Promise<AiClassification> {
+    if (audio) {
+      throw new Error('OpenAI provider does not support audio classification. Use AI_PROVIDER=gemini for audio support.');
+    }
+
+    const url = 'https://api.openai.com/v1/chat/completions';
+
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -45,7 +51,7 @@ Resposta: {"intent": "get_summary", "entities": {}}`;
       body: JSON.stringify({
         model: this.model,
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: this.systemPrompt },
           { role: 'user', content: message },
         ],
         temperature: 0.1,

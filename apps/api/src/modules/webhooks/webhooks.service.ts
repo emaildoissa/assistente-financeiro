@@ -12,6 +12,7 @@ interface TypebotPayload {
   userPhone: string;
   userName?: string;
   remoteJid?: string;
+  audioUrl?: string;
   intent?: string;
   gemini_response?: string;
   entities?: Record<string, any>;
@@ -39,37 +40,51 @@ export class WebhooksService {
     this.apiKey = this.config.get('N8N_API_KEY', '');
   }
 
+  private greetingPatterns = [
+    /^(ola|olá|oi|oie|opa|salve)[\s!.,]*$/i,
+    /^(ola|olá|oi)\s+(assessor|bot|assistente)[\s!.,]*$/i,
+    /^(bom dia|boa tarde|boa noite)[\s!.,]*$/i,
+    /^(bom dia|boa tarde|boa noite)\s+(assessor|bot|assistente)[\s!.,]*$/i,
+    /^(e aí|e ai|fala|beleza|blz|tudo bem|tudo bom)[\s!.,]*$/i,
+  ];
+
+  private isGreetingOnly(msg: string): boolean {
+    const clean = msg.trim();
+    if (!clean) return false;
+    return this.greetingPatterns.some(p => p.test(clean));
+  }
+
+  private async downloadAudio(url: string): Promise<{ base64: string; mimeType: string }> {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`Audio download failed: ${res.status}`);
+    const buffer = Buffer.from(await res.arrayBuffer());
+    const contentType = res.headers.get('content-type') || 'audio/ogg';
+    return {
+      base64: buffer.toString('base64'),
+      mimeType: contentType,
+    };
+  }
+
   async handleTypebot(data: TypebotPayload) {
     let { tenantId, instanceId, userPhone, userName, intent, instanceName, remoteJid } = data;
     let entities = data.entities || {};
-    
+
     if (data.gemini_response) {
       try {
         const str = data.gemini_response.replace(/```json/g, '').replace(/```/g, '').trim();
         const parsed = JSON.parse(str);
         intent = parsed.intent || 'unknown';
         entities = parsed.entities || {};
-      } catch (e) {
+      } catch {
         intent = 'unknown';
       }
     } else if (data.entities_str) {
       try {
         entities = JSON.parse(data.entities_str);
-      } catch (e) {}
+      } catch {}
     }
 
-    if (!intent && data.rawMessage) {
-      try {
-        const result = await this.ai.classify(data.rawMessage);
-        intent = result.intent;
-        entities = result.entities;
-      } catch (e) {
-        console.error(`[WebhooksService] AI classification error: ${e instanceof Error ? e.message : e}`);
-        intent = 'unknown';
-      }
-    }
-
-    // Se tenantId ou instanceId não foram informados, tenta buscar via instanceName
+    // Resolve tenant/instance
     if ((!tenantId || !instanceId) && instanceName) {
       const instance = await this.prisma.whatsappInstance.findFirst({
         where: { instanceName, isActive: true },
@@ -84,7 +99,7 @@ export class WebhooksService {
       throw new HttpException('Tenant não identificado ou instância inativa', HttpStatus.BAD_REQUEST);
     }
 
-    // Normaliza o número de telefone
+    // Normaliza telefone
     if (!userPhone && remoteJid) {
       userPhone = remoteJid.split('@')[0];
     } else if (userPhone && userPhone.includes('@')) {
@@ -94,6 +109,35 @@ export class WebhooksService {
     const conversation = await this.conversations.findOrCreate(
       tenantId, instanceId, userPhone, userName,
     );
+
+    // Step 1: Greeting detection (antes de chamar IA)
+    if (!intent && data.rawMessage && this.isGreetingOnly(data.rawMessage)) {
+      const greetingResponse = 'Em que posso ajudar?';
+      await this.conversations.addMessage(conversation.id, tenantId, 'assistant', greetingResponse);
+      return { response: greetingResponse, conversationId: conversation.id };
+    }
+
+    // Step 2: Audio support
+    let audioInput: { base64: string; mimeType: string } | undefined;
+    if (data.audioUrl) {
+      try {
+        audioInput = await this.downloadAudio(data.audioUrl);
+      } catch (e) {
+        console.error(`[WebhooksService] Audio download failed: ${e instanceof Error ? e.message : e}`);
+      }
+    }
+
+    // Step 3: AI classification (se não veio intent do Typebot)
+    if (!intent && data.rawMessage) {
+      try {
+        const result = await this.ai.classify(data.rawMessage, audioInput);
+        intent = result.intent;
+        entities = result.entities;
+      } catch (e) {
+        console.error(`[WebhooksService] AI classification error: ${e instanceof Error ? e.message : e}`);
+        intent = 'unknown';
+      }
+    }
 
     let response: string;
 
@@ -126,7 +170,7 @@ export class WebhooksService {
       }
 
       case 'chat': {
-        response = entities.reply || 'Olá! Sou o seu assessor financeiro. Digite "ajuda" para ver o que posso fazer.';
+        response = entities.reply || 'Olá! Sou o seu assessor financeiro.';
         break;
       }
 

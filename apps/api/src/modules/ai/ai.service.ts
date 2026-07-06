@@ -1,6 +1,6 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { AiProvider, AiClassification } from './interfaces/ai-provider.interface';
+import { AiProvider, AiClassification, AudioInput } from './interfaces/ai-provider.interface';
 import { GeminiProvider } from './providers/gemini.provider';
 import { OpenAiProvider } from './providers/openai.provider';
 
@@ -23,7 +23,7 @@ export class AiService implements OnModuleInit {
     }
   }
 
-  async classify(message: string): Promise<AiClassification> {
-    return this.provider.classify(message);
+  async classify(message: string, audio?: AudioInput): Promise<AiClassification> {
+    return this.provider.classify(message, audio);
   }
 }

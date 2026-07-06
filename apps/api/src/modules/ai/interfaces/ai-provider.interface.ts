@@ -3,6 +3,11 @@ export interface AiClassification {
   entities: Record<string, any>;
 }
 
+export interface AudioInput {
+  base64: string;
+  mimeType: string;
+}
+
 export interface AiProvider {
-  classify(message: string): Promise<AiClassification>;
+  classify(message: string, audio?: AudioInput): Promise<AiClassification>;
 }
