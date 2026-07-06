@@ -13,6 +13,7 @@ interface TypebotPayload {
   userName?: string;
   remoteJid?: string;
   audioUrl?: string;
+  body?: string;
   intent?: string;
   gemini_response?: string;
   entities?: Record<string, any>;
@@ -80,6 +81,12 @@ export class WebhooksService {
     let { tenantId, instanceId, userPhone, userName, intent, instanceName, remoteJid } = data;
     let entities = data.entities || {};
 
+    // Normaliza rawMessage: aceita body como fallback se rawMessage vier vazio/unknown
+    let rawMessage = data.rawMessage;
+    if (!rawMessage || rawMessage === 'unknown') {
+      rawMessage = data.body || '';
+    }
+
     if (data.gemini_response) {
       try {
         const str = data.gemini_response.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -122,8 +129,8 @@ export class WebhooksService {
     );
 
     // Step 1: Greeting detection (antes de chamar IA)
-    console.log(`[WebhooksService] rawMessage="${data.rawMessage}" phone="${userPhone}" intent="${intent}" isGreeting=${this.isGreetingOnly(data.rawMessage || '')}`);
-    if (!intent && data.rawMessage && this.isGreetingOnly(data.rawMessage)) {
+    console.log(`[WebhooksService] rawMessage="${rawMessage}" phone="${userPhone}" intent="${intent}" isGreeting=${this.isGreetingOnly(rawMessage)}`);
+    if (!intent && rawMessage && this.isGreetingOnly(rawMessage)) {
       const greetingResponse = 'Em que posso ajudar?';
       await this.conversations.addMessage(conversation.id, tenantId, 'assistant', greetingResponse);
       return { response: greetingResponse, conversationId: conversation.id };
@@ -140,9 +147,9 @@ export class WebhooksService {
     }
 
     // Step 3: AI classification (se não veio intent do Typebot)
-    if (!intent && data.rawMessage) {
+    if (!intent && rawMessage) {
       try {
-        const result = await this.ai.classify(data.rawMessage, audioInput);
+        const result = await this.ai.classify(rawMessage, audioInput);
         intent = result.intent;
         entities = result.entities;
       } catch (e) {
