@@ -107,6 +107,11 @@ export class WebhooksService {
       rawMessage = data.body || '';
     }
 
+    // Guard anti-loop: ignora payloads vazios (Typebot re-enviando sem input)
+    if (!rawMessage && !data.audioUrl) {
+      return { received: true, ignored: true };
+    }
+
     if (data.gemini_response) {
       try {
         const str = data.gemini_response.replace(/```json/g, '').replace(/```/g, '').trim();
@@ -148,6 +153,11 @@ export class WebhooksService {
       tenantId, instanceId, userPhone, userName,
     );
 
+    // Log da mensagem do usuário
+    await this.conversations.addMessage(conversation.id, tenantId, 'user', rawMessage || '[áudio]', {
+      type: data.audioUrl ? 'audio' : 'text',
+    });
+
     // Step 1: Greeting detection (antes de chamar IA)
     console.log(`[WebhooksService] rawMessage="${rawMessage}" phone="${userPhone}" intent="${intent}" isGreeting=${this.isGreetingOnly(rawMessage)}`);
     if (!intent && rawMessage && this.isGreetingOnly(rawMessage)) {
@@ -160,14 +170,14 @@ export class WebhooksService {
     let audioInput: { base64: string; mimeType: string } | undefined;
     if (data.audioUrl) {
       try {
-        audioInput = await this.downloadAudio(data.audioUrl);
+        audioInput = await this.downloadAudio(data.audioUrl, data.instanceName);
       } catch (e) {
         console.error(`[WebhooksService] Audio download failed: ${e instanceof Error ? e.message : e}`);
       }
     }
 
     // Step 3: AI classification (se não veio intent do Typebot)
-    if (!intent && rawMessage) {
+    if (!intent && (rawMessage || audioInput)) {
       try {
         const result = await this.ai.classify(rawMessage, audioInput);
         intent = result.intent;
@@ -225,19 +235,14 @@ export class WebhooksService {
   }
 
   async handleEvolution(data: any) {
-    // Ignora mensagens enviadas pelo próprio bot
-    if (data?.data?.key?.fromMe) {
-      return { received: true, ignored: true };
-    }
+    if (data?.data?.key?.fromMe) return { received: true, ignored: true };
 
-    // Extrai dados compatível com Evolution webhook e Typebot integration
     const msgData = data?.data || data;
     const remoteJid = msgData?.key?.remoteJid || msgData?.remoteJid || '';
-    const pushName = msgData?.pushName || msgData?.userName || '';
+    const pushName = msgData?.pushName || '';
     const instanceName = data?.instance || data?.instanceName || '';
     const userPhone = remoteJid.split('@')[0] || msgData?.userPhone || '';
 
-    // Extrai o texto/body de diferentes formatos
     let rawMessage = '';
     let audioUrl: string | undefined;
 
@@ -246,7 +251,6 @@ export class WebhooksService {
     } else {
       const message = msgData?.message || {};
       const messageType = msgData?.messageType || 'conversation';
-
       if (messageType === 'conversation' && message.conversation) {
         rawMessage = message.conversation;
       } else if (messageType === 'extendedTextMessage' && message.extendedTextMessage?.text) {
@@ -259,107 +263,22 @@ export class WebhooksService {
       }
     }
 
-    if (!rawMessage && !audioUrl) {
-      return { received: true, ignored: true };
-    }
+    if (!rawMessage && !audioUrl) return { received: true, ignored: true };
 
-    // Resolve tenant/instance
-    const instance = await this.prisma.whatsappInstance.findFirst({
-      where: { instanceName, isActive: true },
-    });
-    if (!instance) {
-      console.error(`[WebhooksService] Instância não encontrada: ${instanceName}`);
-      return { received: true, error: 'instance_not_found' };
-    }
+    // Reusa handleTypebot (greeting, IA, intents — sem duplicação)
+    const typebotPayload: TypebotPayload = {
+      userPhone,
+      userName: pushName,
+      instanceName,
+      rawMessage,
+      audioUrl,
+      remoteJid,
+    };
+    const result = await this.handleTypebot(typebotPayload);
 
-    const tenantId = instance.tenantId;
-    const instanceId = instance.id;
-
-    const conversation = await this.conversations.findOrCreate(
-      tenantId, instanceId, userPhone, pushName,
-    );
-
-    // Log da mensagem do usuário
-    await this.conversations.addMessage(conversation.id, tenantId, 'user', rawMessage || '[áudio]', {
-      type: audioUrl ? 'audio' : 'text',
-    });
-
-    // Greeting detection
-    if (rawMessage && this.isGreetingOnly(rawMessage)) {
-      const greetingResponse = 'Em que posso ajudar?';
-      await this.conversations.addMessage(conversation.id, tenantId, 'assistant', greetingResponse);
-      await this.evolution.sendText(instanceName, userPhone, greetingResponse);
-      return { response: greetingResponse, conversationId: conversation.id };
-    }
-
-    // Audio download
-    let audioInput: { base64: string; mimeType: string } | undefined;
-    if (audioUrl) {
-      try {
-        audioInput = await this.downloadAudio(audioUrl, instanceName);
-        if (!rawMessage) rawMessage = '[áudio]';
-      } catch (e) {
-        console.error(`[WebhooksService] Audio download failed: ${e instanceof Error ? e.message : e}`);
-      }
-    }
-
-    // AI classification
-    let intent = '';
-    let entities: Record<string, any> = {};
-    if (rawMessage) {
-      try {
-        const result = await this.ai.classify(rawMessage, audioInput);
-        intent = result.intent;
-        entities = result.entities;
-      } catch (e) {
-        console.error(`[WebhooksService] AI error: ${e instanceof Error ? e.message : e}`);
-        intent = 'unknown';
-      }
-    }
-
-    let response: string;
-
-    switch (intent) {
-      case 'create_transaction': {
-        const tx = await this.transactions.create(tenantId, undefined, {
-          type: entities.type || 'expense',
-          amount: Number(entities.amount) || 0,
-          description: entities.description || '',
-          transactionDate: entities.date || new Date().toISOString(),
-          categoryId: entities.categoryId,
-          source: 'whatsapp',
-        });
-        response = `✅ Lançamento registrado: ${tx.type === 'income' ? 'Receita' : 'Despesa'} de R$ ${tx.amount}`;
-        break;
-      }
-
-      case 'get_balance': {
-        const balance = await this.transactions.getBalance(tenantId);
-        response = `💰 Saldo: R$ ${balance.balance.toFixed(2)}\n📈 Receitas: R$ ${balance.income.toFixed(2)}\n📉 Despesas: R$ ${balance.expense.toFixed(2)}`;
-        break;
-      }
-
-      case 'get_summary': {
-        const end = entities.endDate || new Date().toISOString();
-        const start = entities.startDate || new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString();
-        const summary = await this.transactions.getSummary(tenantId, start, end);
-        response = `📊 Resumo (${summary.period.startDate.slice(0, 10)} a ${summary.period.endDate.slice(0, 10)}):\n📈 Receitas: R$ ${summary.totalIncome.toFixed(2)}\n📉 Despesas: R$ ${summary.totalExpense.toFixed(2)}\n📦 ${summary.transactionCount} transações`;
-        break;
-      }
-
-      case 'chat': {
-        response = entities.reply || 'Olá! Sou o seu assessor financeiro.';
-        break;
-      }
-
-      default:
-        response = '❓ Não entendi. Digite "ajuda" para ver os comandos disponíveis.';
-    }
-
-    await this.conversations.addMessage(conversation.id, tenantId, 'assistant', response);
-    await this.evolution.sendText(instanceName, userPhone, response);
-
-    return { response, conversationId: conversation.id };
+    // Envio da resposta via Evolution API
+    await this.evolution.sendText(instanceName, userPhone, result.response);
+    return result;
   }
 
   async handleN8n(data: N8nPayload) {
