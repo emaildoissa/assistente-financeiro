@@ -224,35 +224,43 @@ export class WebhooksService {
     return { response, conversationId: conversation.id };
   }
 
-  async handleEvolution(data: EvolutionPayload) {
-    const msgData = data?.data;
-    if (!msgData || msgData.key?.fromMe) {
+  async handleEvolution(data: any) {
+    // Ignora mensagens enviadas pelo próprio bot
+    if (data?.data?.key?.fromMe) {
       return { received: true, ignored: true };
     }
 
-    const remoteJid = msgData.key?.remoteJid || '';
-    const pushName = msgData.pushName || '';
-    const instanceName = data.instance || '';
-    const userPhone = remoteJid.split('@')[0];
-    const message = msgData.message || {};
-    const messageType = msgData.messageType || 'conversation';
+    // Extrai dados compatível com Evolution webhook e Typebot integration
+    const msgData = data?.data || data;
+    const remoteJid = msgData?.key?.remoteJid || msgData?.remoteJid || '';
+    const pushName = msgData?.pushName || msgData?.userName || '';
+    const instanceName = data?.instance || data?.instanceName || '';
+    const userPhone = remoteJid.split('@')[0] || msgData?.userPhone || '';
 
-    // Extrai texto, áudio ou imagem
+    // Extrai o texto/body de diferentes formatos
     let rawMessage = '';
     let audioUrl: string | undefined;
 
-    if (messageType === 'conversation' && message.conversation) {
-      rawMessage = message.conversation;
-    } else if (messageType === 'extendedTextMessage' && message.extendedTextMessage?.text) {
-      rawMessage = message.extendedTextMessage.text;
-    } else if (messageType === 'audioMessage' && message.audioMessage?.url) {
-      audioUrl = message.audioMessage.url;
-    } else if (messageType === 'ptvMessage' && message.ptvMessage?.url) {
-      audioUrl = message.ptvMessage.url;
-    } else if (messageType === 'imageMessage' && message.imageMessage?.url) {
-      rawMessage = message.imageMessage.caption || '';
-      audioUrl = message.imageMessage.url;
-      // Para imagem, o Gemini pode extrair texto (OCR) — tratamos como áudio para enviar ao provider
+    if (msgData?.body) {
+      rawMessage = msgData.body;
+    } else {
+      const message = msgData?.message || {};
+      const messageType = msgData?.messageType || 'conversation';
+
+      if (messageType === 'conversation' && message.conversation) {
+        rawMessage = message.conversation;
+      } else if (messageType === 'extendedTextMessage' && message.extendedTextMessage?.text) {
+        rawMessage = message.extendedTextMessage.text;
+      } else if ((messageType === 'audioMessage' || messageType === 'ptvMessage') && (message.audioMessage?.url || message.ptvMessage?.url)) {
+        audioUrl = message.audioMessage?.url || message.ptvMessage?.url;
+      } else if (messageType === 'imageMessage' && message.imageMessage?.url) {
+        rawMessage = message.imageMessage.caption || '';
+        audioUrl = message.imageMessage.url;
+      }
+    }
+
+    if (!rawMessage && !audioUrl) {
+      return { received: true, ignored: true };
     }
 
     // Resolve tenant/instance
@@ -273,7 +281,7 @@ export class WebhooksService {
 
     // Log da mensagem do usuário
     await this.conversations.addMessage(conversation.id, tenantId, 'user', rawMessage || '[áudio]', {
-      type: audioUrl ? 'audio' : messageType,
+      type: audioUrl ? 'audio' : 'text',
     });
 
     // Greeting detection
@@ -348,7 +356,6 @@ export class WebhooksService {
         response = '❓ Não entendi. Digite "ajuda" para ver os comandos disponíveis.';
     }
 
-    // Salva resposta e envia no WhatsApp
     await this.conversations.addMessage(conversation.id, tenantId, 'assistant', response);
     await this.evolution.sendText(instanceName, userPhone, response);
 
