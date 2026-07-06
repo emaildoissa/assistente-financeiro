@@ -40,18 +40,29 @@ export class WebhooksService {
     this.apiKey = this.config.get('N8N_API_KEY', '');
   }
 
-  private greetingPatterns = [
-    /^(ola|olá|oi|oie|opa|salve)[\s!.,]*$/i,
-    /^(ola|olá|oi)\s+(assessor|bot|assistente)[\s!.,]*$/i,
-    /^(bom dia|boa tarde|boa noite)[\s!.,]*$/i,
-    /^(bom dia|boa tarde|boa noite)\s+(assessor|bot|assistente)[\s!.,]*$/i,
-    /^(e aí|e ai|fala|beleza|blz|tudo bem|tudo bom)[\s!.,]*$/i,
-  ];
-
   private isGreetingOnly(msg: string): boolean {
-    const clean = msg.trim();
+    const clean = msg.trim().toLowerCase();
     if (!clean) return false;
-    return this.greetingPatterns.some(p => p.test(clean));
+
+    const greetings = [
+      'ola', 'olá', 'oi', 'oie', 'opa', 'salve', 'fala', 'beleza', 'blz',
+      'bom dia', 'boa tarde', 'boa noite',
+      'e aí', 'e ai', 'tudo bem', 'tudo bom',
+    ];
+
+    const botNames = ['assessor', 'bot', 'assistente', 'assistente financeiro'];
+
+    // Ex: "ola", "oi", "bom dia", "e aí"
+    if (greetings.includes(clean)) return true;
+
+    // Ex: "ola assessor", "bom dia bot", "oi assistente financeiro"
+    const words = clean.split(/\s+/);
+    if (greetings.includes(words[0])) {
+      const rest = words.slice(1).join(' ');
+      if (!rest || rest.split(/\s+/).every(w => botNames.includes(w))) return true;
+    }
+
+    return false;
   }
 
   private async downloadAudio(url: string): Promise<{ base64: string; mimeType: string }> {
@@ -111,6 +122,7 @@ export class WebhooksService {
     );
 
     // Step 1: Greeting detection (antes de chamar IA)
+    console.log(`[WebhooksService] rawMessage="${data.rawMessage}" phone="${userPhone}" intent="${intent}" isGreeting=${this.isGreetingOnly(data.rawMessage || '')}`);
     if (!intent && data.rawMessage && this.isGreetingOnly(data.rawMessage)) {
       const greetingResponse = 'Em que posso ajudar?';
       await this.conversations.addMessage(conversation.id, tenantId, 'assistant', greetingResponse);
