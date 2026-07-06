@@ -8,18 +8,17 @@ export class WebhooksController {
   constructor(private service: WebhooksService) {}
 
   @Post('typebot')
-  handleTypebot(
-    @Headers('x-api-key') apiKey: string,
-    @Body() body: any,
-  ) {
+  handleTypebot(@Body() body: any) {
     return this.service.handleTypebot(body);
   }
 
+  @Post('evolution')
+  handleEvolution(@Body() body: any) {
+    return this.service.handleEvolution(body);
+  }
+
   @Post('n8n')
-  handleN8n(
-    @Headers('x-api-key') apiKey: string,
-    @Body() body: any,
-  ) {
+  handleN8n(@Body() body: any) {
     return this.service.handleN8n(body);
   }
 }
