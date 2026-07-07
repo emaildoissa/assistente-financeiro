@@ -2,11 +2,11 @@ import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import { cn } from '../../lib/utils';
 
 const variants = {
-  default: 'bg-blue-600 text-white hover:bg-blue-700',
-  destructive: 'bg-red-600 text-white hover:bg-red-700',
-  outline: 'border border-gray-300 bg-white hover:bg-gray-50',
-  ghost: 'hover:bg-gray-100',
-  link: 'text-blue-600 underline-offset-4 hover:underline',
+  default: 'bg-primary/20 text-blue-400 hover:bg-primary/30 border border-primary/30 shadow-[inset_0_0_10px_rgba(59,130,246,0.2)] hover:shadow-[0_0_15px_rgba(59,130,246,0.4)]',
+  destructive: 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30 shadow-[inset_0_0_10px_rgba(239,68,68,0.2)]',
+  outline: 'border border-white/10 bg-white/5 text-text-main hover:bg-white/10 hover:border-white/20',
+  ghost: 'text-text-muted hover:bg-white/10 hover:text-white',
+  link: 'text-blue-400 underline-offset-4 hover:underline',
 } as const;
 
 const sizes = {

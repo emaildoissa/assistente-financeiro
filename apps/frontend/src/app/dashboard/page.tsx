@@ -100,7 +100,7 @@ export default function DashboardPage() {
             <CardTitle className="text-white/90">Receitas vs Despesas</CardTitle>
           </CardHeader>
           <CardContent className="flex justify-center py-4">
-            <div className="p-4 rounded-full bg-white/5 border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)_inset]">
+            <div className="w-full min-h-[300px] p-4 rounded-2xl bg-white/5 border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)_inset]">
               <BalanceChart data={pieData} />
             </div>
           </CardContent>

@@ -41,9 +41,9 @@ export default function RemindersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Lembretes</h1>
+        <h1 className="text-3xl font-bold text-gradient tracking-wide">Lembretes</h1>
         <Button onClick={() => { setEditingReminder(undefined); setShowForm(true); }}>Novo Lembrete</Button>
       </div>
 
@@ -54,41 +54,45 @@ export default function RemindersPage() {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-6 text-center text-gray-400">Carregando...</div>
+            <div className="p-6 text-center text-text-muted">Carregando...</div>
           ) : reminders.length === 0 ? (
-            <div className="p-6 text-center text-gray-400">Nenhum lembrete</div>
+            <div className="p-6 text-center text-text-muted">Nenhum lembrete</div>
           ) : (
-            <div className="divide-y">
+            <div className="divide-y divide-white/5">
               {reminders.map(rem => (
-                <div key={rem.id} className="flex items-center justify-between p-4 hover:bg-gray-50 group">
-                  <div className="flex items-center gap-3">
-                    <Bell className="h-5 w-5 text-gray-400" />
+                <div key={rem.id} className="flex items-center justify-between p-4 hover:bg-white/5 group transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-full bg-purple-500/10 flex items-center justify-center border border-purple-500/20 group-hover:scale-110 transition-transform">
+                      <Bell className="h-5 w-5 text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]" />
+                    </div>
                     <div>
-                      <p className="text-sm font-medium">{rem.title}</p>
-                      {rem.description && <p className="text-xs text-gray-400">{rem.description}</p>}
+                      <p className="text-sm font-medium text-white">{rem.title}</p>
+                      {rem.description && <p className="text-xs text-text-muted mt-0.5">{rem.description}</p>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="text-xs text-gray-500">{formatDate(rem.remindAt)}</p>
+                      <p className="text-xs text-text-muted font-medium bg-white/5 px-2 py-1 rounded-md mb-1">{formatDate(rem.remindAt)}</p>
                       <Badge variant={rem.isSent ? 'paid' : 'pending'}>
                         {rem.isSent ? 'Enviado' : 'Pendente'}
                       </Badge>
                     </div>
-                    <button
-                      onClick={() => { setEditingReminder(rem); setShowForm(true); }}
-                      className="text-gray-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Editar"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(rem.id)}
-                      className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Excluir"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <div className="flex gap-1 ml-2">
+                      <button
+                        onClick={() => { setEditingReminder(rem); setShowForm(true); }}
+                        className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-all"
+                        title="Editar"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(rem.id)}
+                        className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-all"
+                        title="Excluir"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

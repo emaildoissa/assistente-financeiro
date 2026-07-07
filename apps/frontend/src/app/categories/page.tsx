@@ -40,9 +40,9 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Categorias</h1>
+        <h1 className="text-3xl font-bold text-gradient tracking-wide">Categorias</h1>
         <Button onClick={() => { setEditingCategory(undefined); setShowForm(true); }}>Nova Categoria</Button>
       </div>
 
@@ -53,31 +53,31 @@ export default function CategoriesPage() {
       <Card>
         <CardContent className="p-0">
           {loading ? (
-            <div className="p-6 text-center text-gray-400">Carregando...</div>
+            <div className="p-6 text-center text-text-muted">Carregando...</div>
           ) : categories.length === 0 ? (
-            <div className="p-6 text-center text-gray-400">Nenhuma categoria</div>
+            <div className="p-6 text-center text-text-muted">Nenhuma categoria</div>
           ) : (
-            <div className="divide-y">
+            <div className="divide-y divide-white/5">
               {categories.map(cat => (
-                <div key={cat.id} className="flex items-center justify-between p-4 hover:bg-gray-50 group">
-                  <div className="flex items-center gap-3">
-                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: cat.color || '#ccc' }} />
-                    <span className="text-sm font-medium">{cat.name}</span>
+                <div key={cat.id} className="flex items-center justify-between p-4 hover:bg-white/5 group transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="h-4 w-4 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.2)]" style={{ backgroundColor: cat.color || '#555', boxShadow: cat.color ? `0 0 12px ${cat.color}80` : undefined }} />
+                    <span className="text-sm font-medium text-white tracking-wide">{cat.name}</span>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <Badge variant={cat.type === 'income' ? 'income' : cat.type === 'expense' ? 'expense' : 'default'}>
                       {cat.type === 'income' ? 'Receita' : cat.type === 'expense' ? 'Despesa' : 'Ambos'}
                     </Badge>
                     <button
                       onClick={() => { setEditingCategory(cat); setShowForm(true); }}
-                      className="text-gray-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-all"
                       title="Editar"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(cat.id)}
-                      className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-all"
                       title="Excluir"
                     >
                       <Trash2 className="h-4 w-4" />

@@ -40,9 +40,9 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Projetos</h1>
+        <h1 className="text-3xl font-bold text-gradient tracking-wide">Projetos</h1>
         <Button onClick={() => { setEditingProject(undefined); setShowForm(true); }}>Novo Projeto</Button>
       </div>
 
@@ -50,41 +50,44 @@ export default function ProjectsPage() {
         <ProjectForm onSuccess={() => { setShowForm(false); setEditingProject(undefined); toast(editingProject ? 'Projeto atualizado!' : 'Projeto criado!', 'success'); load(); }} onCancel={() => { setShowForm(false); setEditingProject(undefined); }} project={editingProject} />
       </Dialog>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {loading ? (
-          <div className="col-span-full text-center text-gray-400">Carregando...</div>
+          <div className="col-span-full text-center text-text-muted">Carregando...</div>
         ) : projects.length === 0 ? (
-          <div className="col-span-full text-center text-gray-400">Nenhum projeto</div>
+          <div className="col-span-full text-center text-text-muted">Nenhum projeto</div>
         ) : projects.map(project => (
-          <Card key={project.id} className="group">
-            <CardHeader className="flex flex-row items-center gap-2">
-              <div className="h-3 w-3 rounded-full" style={{ backgroundColor: project.color || '#ccc' }} />
-              <CardTitle className="text-base flex-1">{project.name}</CardTitle>
-              <Badge variant={project.status}>{project.status}</Badge>
-              <button
-                onClick={() => { setEditingProject(project); setShowForm(true); }}
-                className="text-gray-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Editar"
-              >
-                <Pencil className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => handleDelete(project.id)}
-                className="text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                title="Excluir"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </CardHeader>
-            <CardContent>
-              {project.description && (
-                <p className="text-sm text-gray-500 mb-2">{project.description}</p>
-              )}
-              <p className="text-xs text-gray-400">
-                {project._count?.tasks ?? 0} tarefa(s)
-                {project.budget ? ` | Orçamento: R$ ${Number(project.budget).toFixed(2)}` : ''}
-              </p>
-            </CardContent>
+          <Card key={project.id} className="group relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="relative z-10">
+              <CardHeader className="flex flex-row items-center gap-3 border-b border-white/5 pb-4">
+                <div className="h-4 w-4 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.2)]" style={{ backgroundColor: project.color || '#555', boxShadow: project.color ? `0 0 12px ${project.color}80` : undefined }} />
+                <CardTitle className="text-lg font-bold text-white flex-1 tracking-wide">{project.name}</CardTitle>
+                <Badge variant={project.status}>{project.status}</Badge>
+                <button
+                  onClick={() => { setEditingProject(project); setShowForm(true); }}
+                  className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-all"
+                  title="Editar"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => handleDelete(project.id)}
+                  className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-all"
+                  title="Excluir"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </CardHeader>
+              <CardContent className="pt-4">
+                {project.description && (
+                  <p className="text-sm text-text-muted mb-4 line-clamp-2">{project.description}</p>
+                )}
+                <div className="flex items-center gap-4 text-xs font-medium text-white/60">
+                  <span className="bg-white/5 px-2 py-1 rounded-md border border-white/10">{project._count?.tasks ?? 0} tarefa(s)</span>
+                  {project.budget && <span className="bg-green-500/10 text-green-400 px-2 py-1 rounded-md border border-green-500/20">Orçamento: R$ {Number(project.budget).toFixed(2)}</span>}
+                </div>
+              </CardContent>
+            </div>
           </Card>
         ))}
       </div>
