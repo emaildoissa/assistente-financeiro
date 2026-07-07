@@ -45,7 +45,7 @@ export class GeminiProvider implements AiProvider {
         inline_data: { mime_type: audio.mimeType, data: audio.base64 },
       });
       parts.push({
-        text: `Transcreva o áudio acima e classifique a intenção financeira. Se houver valores numéricos (contas, preços), extraia como entidade "amount" do tipo "expense" com a descrição adequada.\n\n${this.systemPrompt}`,
+        text: `Analise o arquivo anexo (pode ser um áudio de voz ou a foto de um recibo/comprovante). Extraia e classifique a intenção financeira. Se houver valores numéricos (contas, preços, totais), extraia como entidade "amount" do tipo "expense" (ou "income" se for recebimento) com a descrição adequada.\n\n${this.systemPrompt}`,
       });
     } else {
       parts.push({

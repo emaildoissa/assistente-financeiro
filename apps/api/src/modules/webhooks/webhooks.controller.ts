@@ -1,4 +1,5 @@
-import { Controller, Post, Get, Body, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Body, HttpCode, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { Public } from '../../core/auth/public.decorator';
 import { WebhooksService } from './webhooks.service';
@@ -14,8 +15,7 @@ export class WebhooksController {
   ) {}
 
   /**
-   * Health check — retorna o estado da configuração do webhook.
-   * Acesse: GET /api/v1/webhooks/health
+   * Health check — GET /api/v1/webhooks/health
    */
   @Get('health')
   async health() {
@@ -47,44 +47,41 @@ export class WebhooksController {
     });
 
     const problems: string[] = [];
-
     if (tenantCount === 0) problems.push('Nenhum Tenant cadastrado no banco');
     if (instanceCount === 0) problems.push('Nenhuma WhatsappInstance ativa no banco');
-    if (!defaultTenantId) problems.push('DEFAULT_TENANT_ID não definida na env (fallback desabilitado)');
+    if (!defaultTenantId) problems.push('DEFAULT_TENANT_ID não definida na env');
     if (defaultTenantId && !defaultTenantExists) problems.push(`DEFAULT_TENANT_ID "${defaultTenantId}" não encontrada no banco`);
-    if (!aiKeyPresente) problems.push('AI_API_KEY não configurada — Gemini/OpenAI vai falhar');
+    if (!aiKeyPresente) problems.push('AI_API_KEY não configurada');
 
     return {
       ok: problems.length === 0,
       problems,
-      config: {
-        aiProvider,
-        aiKeyPresente,
-        evolutionUrl,
-        defaultTenantId: defaultTenantId || '(não definida)',
-        defaultTenantExists,
-      },
-      banco: {
-        tenants: tenantCount,
-        instancesAtivas: instanceCount,
-        instances,
-      },
+      config: { aiProvider, aiKeyPresente, evolutionUrl, defaultTenantId: defaultTenantId || '(não definida)', defaultTenantExists },
+      banco: { tenants: tenantCount, instancesAtivas: instanceCount, instances },
     };
   }
 
+  /** POST /api/v1/webhooks/typebot */
   @Post('typebot')
-  handleTypebot(@Body() body: any) {
-    return this.service.handleTypebot(body);
+  @HttpCode(200)
+  async handleTypebot(@Body() body: any, @Res() res: Response) {
+    const result = await this.service.handleTypebot(body);
+    return res.json(result);
   }
 
+  /** POST /api/v1/webhooks/evolution */
   @Post('evolution')
-  handleEvolution(@Body() body: any) {
-    return this.service.handleEvolution(body);
+  @HttpCode(200)
+  async handleEvolution(@Body() body: any, @Res() res: Response) {
+    const result = await this.service.handleEvolution(body);
+    return res.json(result);
   }
 
+  /** POST /api/v1/webhooks/n8n */
   @Post('n8n')
-  handleN8n(@Body() body: any) {
-    const apiKey = body?.apiKey;
-    return this.service.handleN8n(body, apiKey);
+  @HttpCode(200)
+  async handleN8n(@Body() body: any, @Res() res: Response) {
+    const result = await this.service.handleN8n(body, body?.apiKey);
+    return res.json(result);
   }
 }

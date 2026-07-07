@@ -34,6 +34,7 @@ export class WebhooksService {
   private n8nApiKey: string;
   private defaultTenantId: string;
   private defaultInstanceId: string;
+  private ownerPhone: string;
 
   constructor(
     private config: ConfigService,
@@ -46,6 +47,7 @@ export class WebhooksService {
     this.n8nApiKey = this.config.get('N8N_API_KEY', '');
     this.defaultTenantId = this.config.get('DEFAULT_TENANT_ID', '');
     this.defaultInstanceId = this.config.get('DEFAULT_INSTANCE_ID', '');
+    this.ownerPhone = this.config.get('OWNER_PHONE', '').replace(/\D/g, '');
   }
 
   private isGreetingOnly(msg: string): boolean {
@@ -260,13 +262,35 @@ export class WebhooksService {
   }
 
   async handleEvolution(data: any) {
-    if (data?.data?.key?.fromMe) return { received: true, ignored: true };
-
     const msgData = data?.data || data;
     const remoteJid = msgData?.key?.remoteJid || msgData?.remoteJid || '';
+    const userPhone = remoteJid.split('@')[0] || msgData?.userPhone || '';
+    
+    // Função auxiliar para normalizar número (pega DDD e os últimos 8 dígitos)
+    const normalizePhone = (phone: string) => {
+      const clean = phone.replace(/\D/g, '');
+      if (clean.length < 10) return clean;
+      
+      // Se for Brasil (começa com 55) e tiver 12 ou 13 dígitos
+      if (clean.startsWith('55') && (clean.length === 12 || clean.length === 13)) {
+        const ddd = clean.substring(2, 4);
+        const last8 = clean.slice(-8);
+        return ddd + last8;
+      }
+      return clean.slice(-10); // fallback para outros países
+    };
+
+    const userNormalized = normalizePhone(userPhone);
+    const ownerNormalized = normalizePhone(this.ownerPhone);
+
+    // 1. TRAVA DE SEGURANÇA: Só responde se o número normalizado for igual ao OWNER_PHONE
+    if (this.ownerPhone && userNormalized !== ownerNormalized) {
+      console.log(`[WebhooksService] Mensagem de terceiros ignorada: ${userPhone}`);
+      return { received: true, ignored: true, reason: 'not_owner' };
+    }
+
     const pushName = msgData?.pushName || '';
     const instanceName = data?.instance || data?.instanceName || '';
-    const userPhone = remoteJid.split('@')[0] || msgData?.userPhone || '';
 
     let rawMessage = '';
     let audioUrl: string | undefined;
@@ -289,6 +313,13 @@ export class WebhooksService {
     }
 
     if (!rawMessage && !audioUrl) return { received: true, ignored: true };
+
+    // 2. EVITAR LOOP INFINITO: Ignorar mensagens que começam com os padrões do Bot
+    const botPrefixes = ['✅', '💰', '📊', '❓', 'Em que posso ajudar?'];
+    if (rawMessage && botPrefixes.some(p => rawMessage.startsWith(p))) {
+      console.log(`[WebhooksService] Mensagem gerada pelo bot ignorada (loop prevention).`);
+      return { received: true, ignored: true, reason: 'bot_loop_prevention' };
+    }
 
     const typebotPayload: TypebotPayload = {
       userPhone,
