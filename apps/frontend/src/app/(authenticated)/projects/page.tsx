@@ -1,15 +1,15 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { api } from '../../lib/api-client';
-import { Button } from '../../components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Dialog } from '../../components/ui/dialog';
-import { ProjectForm } from '../../components/projects/project-form';
-import { useToast } from '../../components/ui/toast';
+import { api } from '../../../lib/api-client';
+import { Button } from '../../../components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Dialog } from '../../../components/ui/dialog';
+import { ProjectForm } from '../../../components/projects/project-form';
+import { useToast } from '../../../components/ui/toast';
 import { Pencil, Trash2 } from 'lucide-react';
-import type { Project } from '../../types/api';
+import type { Project } from '../../../types/api';
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);

@@ -41,8 +41,10 @@ export const api = {
   me: () => request<any>('GET', '/auth/me'),
 
   // Dashboard
-  getDashboard: () =>
-    request<import('../types/api').Dashboard>('GET', '/dashboard'),
+  getDashboard: (params?: { month?: number; year?: number }) => {
+    const qs = params ? '?' + new URLSearchParams(params as any).toString() : '';
+    return request<import('../types/api').Dashboard>('GET', `/dashboard${qs}`);
+  },
 
   // Transactions
   getTransactions: (params?: Record<string, string>) => {

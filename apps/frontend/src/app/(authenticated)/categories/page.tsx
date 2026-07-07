@@ -1,15 +1,15 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { api } from '../../lib/api-client';
-import { Button } from '../../components/ui/button';
-import { Card, CardContent } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Dialog } from '../../components/ui/dialog';
-import { CategoryForm } from '../../components/categories/category-form';
-import { useToast } from '../../components/ui/toast';
+import { api } from '../../../lib/api-client';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Dialog } from '../../../components/ui/dialog';
+import { CategoryForm } from '../../../components/categories/category-form';
+import { useToast } from '../../../components/ui/toast';
 import { Pencil, Trash2 } from 'lucide-react';
-import type { Category } from '../../types/api';
+import type { Category } from '../../../types/api';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);

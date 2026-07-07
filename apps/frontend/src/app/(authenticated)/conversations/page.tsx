@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { api } from '../../lib/api-client';
-import { Card, CardContent } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
+import { api } from '../../../lib/api-client';
+import { Card, CardContent } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
 import { MessageSquare } from 'lucide-react';
-import type { Conversation } from '../../types/api';
+import type { Conversation } from '../../../types/api';
 
 export default function ConversationsPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);

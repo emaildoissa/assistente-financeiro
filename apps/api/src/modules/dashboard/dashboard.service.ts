@@ -5,11 +5,15 @@ import { PrismaService } from '../../prisma/prisma.service';
 export class DashboardService {
   constructor(private prisma: PrismaService) {}
 
-  async getDashboard(tenantId: string) {
+  async getDashboard(tenantId: string, month?: number, year?: number) {
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
+    const targetYear = year ?? now.getFullYear();
+    const targetMonth = month !== undefined ? month : now.getMonth();
+    const startOfMonth = new Date(targetYear, targetMonth, 1);
+    const endOfMonth = new Date(targetYear, targetMonth + 1, 0);
+    
+    // Balance should probably just reflect total balance up to this point or always total. 
+    // Usually balance is all-time. We'll leave getBalance as is (it doesn't filter by date currently)
     const [balance, monthSummary, upcomingTransactions, pendingTasks, upcomingReminders] =
       await Promise.all([
         this.getBalance(tenantId),

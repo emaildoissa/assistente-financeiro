@@ -1,16 +1,17 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { api } from '../../lib/api-client';
-import { Button } from '../../components/ui/button';
-import { Card, CardContent } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Dialog } from '../../components/ui/dialog';
-import { TransactionForm } from '../../components/transactions/transaction-form';
-import { useToast } from '../../components/ui/toast';
-import { formatCurrency, formatDate } from '../../lib/utils';
+import { api } from '../../../lib/api-client';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Dialog } from '../../../components/ui/dialog';
+import { MonthPicker } from '../../../components/ui/month-picker';
+import { TransactionForm } from '../../../components/transactions/transaction-form';
+import { useToast } from '../../../components/ui/toast';
+import { formatCurrency, formatDate } from '../../../lib/utils';
 import { Pencil, Trash2 } from 'lucide-react';
-import type { Transaction } from '../../types/api';
+import type { Transaction } from '../../../types/api';
 
 export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -20,11 +21,23 @@ export default function TransactionsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [showForm, setShowForm] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>(undefined);
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const { toast } = useToast();
 
   const load = useCallback(() => {
     setLoading(true);
-    const params: Record<string, string> = { page: String(page), limit: '20' };
+    
+    // Calcular startDate e endDate baseados no mes selecionado
+    const startDate = new Date(selectedYear, selectedMonth, 1).toISOString();
+    const endDate = new Date(selectedYear, selectedMonth + 1, 0, 23, 59, 59, 999).toISOString();
+
+    const params: Record<string, string> = { 
+      page: String(page), 
+      limit: '20',
+      startDate,
+      endDate
+    };
     if (typeFilter) params.type = typeFilter;
 
     api.getTransactions(params)
@@ -34,7 +47,7 @@ export default function TransactionsPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [page, typeFilter]);
+  }, [page, typeFilter, selectedMonth, selectedYear]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -69,9 +82,16 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold text-gradient tracking-wide">Transações</h1>
-        <Button onClick={openCreate} className="shadow-[0_0_15px_rgba(59,130,246,0.3)]">Nova Transação</Button>
+        <div className="flex flex-wrap items-center gap-4">
+          <MonthPicker 
+            month={selectedMonth} 
+            year={selectedYear} 
+            onChange={(m: number, y: number) => { setSelectedMonth(m); setSelectedYear(y); setPage(1); }} 
+          />
+          <Button onClick={openCreate} className="shadow-[0_0_15px_rgba(59,130,246,0.3)]">Nova Transação</Button>
+        </div>
       </div>
 
       <Dialog open={showForm} onClose={() => { setShowForm(false); setEditingTransaction(undefined); }} title={editingTransaction ? 'Editar Transação' : 'Nova Transação'}>

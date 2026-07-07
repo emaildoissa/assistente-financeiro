@@ -1,16 +1,16 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { api } from '../../lib/api-client';
-import { Button } from '../../components/ui/button';
-import { Card, CardContent } from '../../components/ui/card';
-import { Badge } from '../../components/ui/badge';
-import { Dialog } from '../../components/ui/dialog';
-import { ReminderForm } from '../../components/reminders/reminder-form';
-import { useToast } from '../../components/ui/toast';
-import { formatDate } from '../../lib/utils';
+import { api } from '../../../lib/api-client';
+import { Button } from '../../../components/ui/button';
+import { Card, CardContent } from '../../../components/ui/card';
+import { Badge } from '../../../components/ui/badge';
+import { Dialog } from '../../../components/ui/dialog';
+import { ReminderForm } from '../../../components/reminders/reminder-form';
+import { useToast } from '../../../components/ui/toast';
+import { formatDate } from '../../../lib/utils';
 import { Bell, Pencil, Trash2 } from 'lucide-react';
-import type { Reminder } from '../../types/api';
+import type { Reminder } from '../../../types/api';
 
 export default function RemindersPage() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
