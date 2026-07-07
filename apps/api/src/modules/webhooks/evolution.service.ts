@@ -45,4 +45,24 @@ export class EvolutionService {
     const mimeType = res.headers.get('content-type') || 'application/octet-stream';
     return { buffer, mimeType };
   }
+
+  async getBase64FromMediaMessage(instanceName: string, message: any): Promise<string> {
+    const url = `${this.baseUrl}/chat/getBase64FromMediaMessage/${instanceName}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apiKey': this.apiKey,
+      },
+      body: JSON.stringify({ message }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => '');
+      throw new Error(`Evolution API getBase64 error ${res.status}: ${errorText.slice(0, 300)}`);
+    }
+
+    const data = await res.json();
+    return data.base64;
+  }
 }

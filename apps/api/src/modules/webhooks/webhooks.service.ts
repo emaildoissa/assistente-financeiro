@@ -14,6 +14,8 @@ interface TypebotPayload {
   userName?: string;
   remoteJid?: string;
   audioUrl?: string;
+  mediaMimeType?: string;
+  base64Media?: string;
   body?: string;
   intent?: string;
   gemini_response?: string;
@@ -184,11 +186,21 @@ export class WebhooksService {
       return { response: greetingResponse, conversationId: conversation.id };
     }
 
-    // Step 2: Download de áudio
+    // Step 2: Download de áudio ou uso direto do Base64
     let audioInput: { base64: string; mimeType: string } | undefined;
-    if (data.audioUrl) {
+    if (data.base64Media && data.mediaMimeType) {
+      audioInput = { 
+        base64: data.base64Media, 
+        mimeType: data.mediaMimeType.split(';')[0].trim() 
+      };
+    } else if (data.audioUrl) {
       try {
         audioInput = await this.downloadAudio(data.audioUrl, data.instanceName);
+        const fallbackMime = data.mediaMimeType || 'audio/ogg';
+        if (!audioInput.mimeType || audioInput.mimeType.includes('octet-stream')) {
+          audioInput.mimeType = fallbackMime;
+        }
+        audioInput.mimeType = audioInput.mimeType.split(';')[0].trim();
       } catch (e) {
         console.error(`[WebhooksService] Audio download failed: ${e instanceof Error ? e.message : e}`);
       }
@@ -294,6 +306,8 @@ export class WebhooksService {
 
     let rawMessage = '';
     let audioUrl: string | undefined;
+    let mediaMimeType: string | undefined;
+    let base64Media: string | undefined;
 
     if (msgData?.body) {
       rawMessage = msgData.body;
@@ -306,9 +320,22 @@ export class WebhooksService {
         rawMessage = message.extendedTextMessage.text;
       } else if ((messageType === 'audioMessage' || messageType === 'ptvMessage') && (message.audioMessage?.url || message.ptvMessage?.url)) {
         audioUrl = message.audioMessage?.url || message.ptvMessage?.url;
+        mediaMimeType = message.audioMessage?.mimetype || message.ptvMessage?.mimetype || 'audio/ogg';
+        if (msgData.base64) base64Media = msgData.base64;
       } else if (messageType === 'imageMessage' && message.imageMessage?.url) {
         rawMessage = message.imageMessage.caption || '';
         audioUrl = message.imageMessage.url;
+        mediaMimeType = message.imageMessage?.mimetype || 'image/jpeg';
+        if (msgData.base64) base64Media = msgData.base64;
+      }
+
+      // Se é mídia mas não veio o base64 direto, solicita a descriptografia para a Evolution API
+      if (audioUrl && !base64Media) {
+        try {
+          base64Media = await this.evolution.getBase64FromMediaMessage(instanceName, msgData);
+        } catch (err) {
+          console.error(`[WebhooksService] Falha ao descriptografar media: ${err}`);
+        }
       }
     }
 
@@ -327,6 +354,8 @@ export class WebhooksService {
       instanceName,
       rawMessage,
       audioUrl,
+      mediaMimeType,
+      base64Media,
       remoteJid,
     };
     const result = await this.handleTypebot(typebotPayload);

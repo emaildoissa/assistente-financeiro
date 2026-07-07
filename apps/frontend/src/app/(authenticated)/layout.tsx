@@ -26,9 +26,9 @@ export default function AuthenticatedLayout({ children }: { children: React.Reac
   if (!user) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden text-text-main">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-gray-50 p-6">
+      <main className="flex-1 overflow-y-auto p-6 relative z-10">
         {children}
       </main>
     </div>
