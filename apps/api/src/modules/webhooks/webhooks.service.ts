@@ -227,6 +227,8 @@ export class WebhooksService {
           amount: Number(entities.amount) || 0,
           description: entities.description || '',
           transactionDate: entities.date || new Date().toISOString(),
+          dueDate: entities.dueDate,
+          status: entities.status || 'paid',
           categoryId: entities.categoryId,
           source: 'whatsapp',
         });
