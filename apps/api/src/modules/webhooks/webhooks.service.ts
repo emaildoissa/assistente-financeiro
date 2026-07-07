@@ -232,17 +232,19 @@ export class WebhooksService {
         });
         const tipo = tx.type === 'income' ? '📈 Receita' : '📉 Despesa';
         const valor = Number(tx.amount).toFixed(2).replace('.', ',');
-        response = `✅ Registrado: ${tipo} de R$ ${valor}${tx.description ? ` — ${tx.description}` : ''}`;
+        const fallbackResponse = `✅ Registrado: ${tipo} de R$ ${valor}${tx.description ? ` — ${tx.description}` : ''}`;
+        response = entities.bot_reply ? `🤖 ${entities.bot_reply}` : fallbackResponse;
         break;
       }
 
       case 'get_balance': {
         const balance = await this.transactions.getBalance(tenantId);
-        response = [
+        const fallbackResponse = [
           `💰 Saldo: R$ ${balance.balance.toFixed(2).replace('.', ',')}`,
           `📈 Receitas: R$ ${balance.income.toFixed(2).replace('.', ',')}`,
           `📉 Despesas: R$ ${balance.expense.toFixed(2).replace('.', ',')}`,
         ].join('\n');
+        response = entities.bot_reply ? `🤖 ${entities.bot_reply}\n\n${fallbackResponse}` : fallbackResponse;
         break;
       }
 
@@ -250,12 +252,13 @@ export class WebhooksService {
         const end = entities.endDate || new Date().toISOString();
         const start = entities.startDate || new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString();
         const summary = await this.transactions.getSummary(tenantId, start, end);
-        response = [
+        const fallbackResponse = [
           `📊 Resumo (${summary.period.startDate.slice(0, 10)} a ${summary.period.endDate.slice(0, 10)}):`,
           `📈 Receitas: R$ ${summary.totalIncome.toFixed(2).replace('.', ',')}`,
           `📉 Despesas: R$ ${summary.totalExpense.toFixed(2).replace('.', ',')}`,
           `📦 ${summary.transactionCount} transações`,
         ].join('\n');
+        response = entities.bot_reply ? `🤖 ${entities.bot_reply}\n\n${fallbackResponse}` : fallbackResponse;
         break;
       }
 
@@ -342,7 +345,7 @@ export class WebhooksService {
     if (!rawMessage && !audioUrl) return { received: true, ignored: true };
 
     // 2. EVITAR LOOP INFINITO: Ignorar mensagens que começam com os padrões do Bot
-    const botPrefixes = ['✅', '💰', '📊', '❓', 'Em que posso ajudar?'];
+    const botPrefixes = ['✅', '💰', '📊', '❓', 'Em que posso ajudar?', '🤖'];
     if (rawMessage && botPrefixes.some(p => rawMessage.startsWith(p))) {
       console.log(`[WebhooksService] Mensagem gerada pelo bot ignorada (loop prevention).`);
       return { received: true, ignored: true, reason: 'bot_loop_prevention' };

@@ -2,26 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AiProvider, AiClassification, AudioInput } from '../interfaces/ai-provider.interface';
 
-const DEFAULT_PROMPT = `Você é um assessor financeiro gentil pelo WhatsApp. Retorne SEMPRE APENAS um JSON puro sem formatação markdown.
+const DEFAULT_PROMPT = `Você é um assessor financeiro sarcástico e divertido pelo WhatsApp. Retorne SEMPRE APENAS um JSON puro sem formatação markdown.
 
 Intenções disponíveis:
-- "create_transaction": Lançar receita ou despesa. Entities: type ("income"/"expense"), amount (number), description (string), categoryId (string, opcional), date (ISO string, opcional)
-- "get_balance": Consultar saldo atual
-- "get_summary": Resumo de um período. Entities: startDate (ISO string), endDate (ISO string)
-- "chat": Bate-papo ou saudação. Entities: reply (string, sua resposta amigável)
+- "create_transaction": Lançar receita ou despesa. Entities: type ("income"/"expense"), amount (number), description (string), categoryId (string, opcional), date (ISO string, opcional), bot_reply (string)
+- "get_balance": Consultar saldo atual. Entities: bot_reply (string)
+- "get_summary": Resumo de um período. Entities: startDate (ISO string), endDate (ISO string), bot_reply (string)
+- "chat": Bate-papo ou saudação. Entities: reply (string)
+
+Instrução para bot_reply: Gere uma resposta curta, engajadora e com personalidade (seja irônico com gastos fúteis, comemore receitas, etc). A resposta DEVE confirmar o que foi registrado de forma engraçada.
 
 Exemplos:
-Mensagem: "ola"
-Resposta: {"intent": "chat", "entities": {"reply": "Olá! Como posso ajudar você com suas finanças hoje?"}}
+Mensagem: "gastei 50 com ifood"
+Resposta: {"intent": "create_transaction", "entities": {"type": "expense", "amount": 50, "description": "iFood", "bot_reply": "Mais 50 reais em lanche? O projeto fitness chorou agora. 🍔💸 Tá registrado!"}}
 
-Mensagem: "gastei 50 com uber"
-Resposta: {"intent": "create_transaction", "entities": {"type": "expense", "amount": 50, "description": "Uber"}}
-
-Mensagem: "meu saldo"
-Resposta: {"intent": "get_balance", "entities": {}}
-
-Mensagem: "resumo do mes"
-Resposta: {"intent": "get_summary", "entities": {}}`;
+Mensagem: "recebi 120 de freela"
+Resposta: {"intent": "create_transaction", "entities": {"type": "income", "amount": 120, "description": "Freela", "bot_reply": "Booooa! R$ 120 pro cofre! É assim que se constrói um império! 🚀"}}`;
 
 @Injectable()
 export class GeminiProvider implements AiProvider {
@@ -40,16 +36,18 @@ export class GeminiProvider implements AiProvider {
 
     const parts: any[] = [];
 
+    const currentDate = new Date().toISOString();
+
     if (audio) {
       parts.push({
         inline_data: { mime_type: audio.mimeType, data: audio.base64 },
       });
       parts.push({
-        text: `Analise o arquivo anexo (pode ser um áudio de voz ou a foto de um recibo/comprovante). Extraia e classifique a intenção financeira. Se houver valores numéricos (contas, preços, totais), extraia como entidade "amount" do tipo "expense" (ou "income" se for recebimento) com a descrição adequada.\n\n${this.systemPrompt}`,
+        text: `Data atual: ${currentDate}\n\nAnalise o arquivo anexo (pode ser um áudio de voz ou a foto de um recibo/comprovante). Extraia e classifique a intenção financeira. Se houver valores numéricos (contas, preços, totais), extraia como entidade "amount" do tipo "expense" (ou "income" se for recebimento) com a descrição adequada.\n\n${this.systemPrompt}`,
       });
     } else {
       parts.push({
-        text: `${this.systemPrompt}\n\nMensagem: ${message}`,
+        text: `Data atual: ${currentDate}\n\n${this.systemPrompt}\n\nMensagem: ${message}`,
       });
     }
 
