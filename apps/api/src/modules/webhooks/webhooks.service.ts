@@ -36,7 +36,6 @@ export class WebhooksService {
   private n8nApiKey: string;
   private defaultTenantId: string;
   private defaultInstanceId: string;
-  private ownerPhone: string;
 
   constructor(
     private config: ConfigService,
@@ -49,7 +48,6 @@ export class WebhooksService {
     this.n8nApiKey = this.config.get('N8N_API_KEY', '');
     this.defaultTenantId = this.config.get('DEFAULT_TENANT_ID', '');
     this.defaultInstanceId = this.config.get('DEFAULT_INSTANCE_ID', '');
-    this.ownerPhone = this.config.get('OWNER_PHONE', '').replace(/\D/g, '');
   }
 
   private isGreetingOnly(msg: string): boolean {
@@ -297,17 +295,37 @@ export class WebhooksService {
       return clean.slice(-10); // fallback para outros países
     };
 
-    const userNormalized = normalizePhone(userPhone);
-    const ownerNormalized = normalizePhone(this.ownerPhone);
-
-    // 1. TRAVA DE SEGURANÇA: Só responde se o número normalizado for igual ao OWNER_PHONE
-    if (this.ownerPhone && userNormalized !== ownerNormalized) {
-      console.log(`[WebhooksService] Mensagem de terceiros ignorada: ${userPhone}`);
-      return { received: true, ignored: true, reason: 'not_owner' };
-    }
-
     const pushName = msgData?.pushName || '';
     const instanceName = data?.instance || data?.instanceName || '';
+
+    // Buscar a instância no banco para descobrir o ownerPhone
+    let tenantId: string | undefined;
+    let instanceId: string | undefined;
+    let ownerPhone: string | undefined;
+
+    if (instanceName) {
+      const instance = await this.prisma.whatsappInstance.findFirst({
+        where: { instanceName, isActive: true },
+      });
+      if (instance) {
+        tenantId = instance.tenantId;
+        instanceId = instance.id;
+        ownerPhone = instance.ownerPhone || undefined;
+      }
+    }
+
+    const userNormalized = normalizePhone(userPhone);
+
+    // 1. TRAVA DE SEGURANÇA: Só responde se o número normalizado for igual ao ownerPhone da instância
+    if (ownerPhone) {
+      const ownerNormalized = normalizePhone(ownerPhone);
+      if (userNormalized !== ownerNormalized) {
+        console.log(`[WebhooksService] Mensagem de terceiros ignorada na instância ${instanceName}: ${userPhone}`);
+        return { received: true, ignored: true, reason: 'not_owner' };
+      }
+    } else {
+      console.warn(`[WebhooksService] Instância ${instanceName} não tem ownerPhone configurado. Nenhuma trava de segurança aplicada!`);
+    }
 
     let rawMessage = '';
     let audioUrl: string | undefined;
@@ -354,6 +372,8 @@ export class WebhooksService {
     }
 
     const typebotPayload: TypebotPayload = {
+      tenantId,
+      instanceId,
       userPhone,
       userName: pushName,
       instanceName,

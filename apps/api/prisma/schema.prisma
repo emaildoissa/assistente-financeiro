@@ -111,7 +111,7 @@ model WhatsappInstance {
   instanceName  String   @map("instance_name")
   evolutionId   String   @map("evolution_id")
   webhookSecret String?  @map("webhook_secret")
-  phoneNumber   String?  @map("phone_number")
+  ownerPhone    String?  @map("owner_phone")
   isActive      Boolean  @default(true) @map("is_active")
   config        Json     @default("{}")
   createdAt     DateTime @default(now()) @map("created_at")

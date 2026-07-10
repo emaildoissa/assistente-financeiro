@@ -27,11 +27,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setAuth = useCallback((token: string, user: User & { tenant: Tenant }) => {
     localStorage.setItem('token', token);
+    if (user?.tenant?.id) {
+      localStorage.setItem('tenantId', user.tenant.id);
+    }
     setState({ user, token, loading: false });
   }, []);
 
   const clearAuth = useCallback(() => {
     localStorage.removeItem('token');
+    localStorage.removeItem('tenantId');
     setState({ user: null, token: null, loading: false });
   }, []);
 

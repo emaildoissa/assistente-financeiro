@@ -5,16 +5,23 @@ function getToken(): string | null {
   return localStorage.getItem('token');
 }
 
+function getTenantId(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('tenantId');
+}
+
 async function request<T>(
   method: string,
   path: string,
   body?: unknown,
 ): Promise<T> {
   const token = getToken();
+  const tenantId = getTenantId();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
   if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (tenantId) headers['x-tenant-id'] = tenantId;
 
   const res = await fetch(`${API_URL}${path}`, {
     method,
