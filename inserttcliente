@@ -1,0 +1,31 @@
+Passo 1: O Testador cria a conta (Site)
+Peça para o seu testador acessar o seu site na Vercel e ir em "Criar Conta". Ele vai preencher Email, Senha e o Nome da Empresa (ex: "Finanças do João"). Isso vai criar o painel dele zeradinho.
+
+Passo 2: Você descobre o ID dele (DBeaver)
+No seu DBeaver, rode:
+
+sql
+SELECT id, name FROM public.tenants;
+Encontre a empresa que ele acabou de criar e copie o id (ex: 1234-abcd...).
+
+Passo 3: Você cria o Bot dele (Evolution API)
+Vá no painel da sua Evolution API e crie uma Instância nova (ex: bot-do-joao).
+Configure o Webhook dessa instância para a sua API: https://api.assessor.automacao.free.nf/api/v1/webhooks/evolution (ativando o evento de mensagens).
+Conecte um número de WhatsApp nessa instância (lendo o QR Code).
+Passo 4: Você vincula tudo (DBeaver)
+Para finalizar, rode este comando no seu DBeaver para dizer ao sistema que a instância "bot-do-joao" pertence ao Tenant do João, e que só o número de celular pessoal dele pode mandar comandos para esse bot:
+
+sql
+INSERT INTO public.whatsapp_instances 
+(id, tenant_id, instance_name, evolution_id, owner_phone, is_active, created_at)
+VALUES (
+  gen_random_uuid(), 
+  'COLE-AQUI-O-TENANT-ID-DELE', 
+  'bot-do-joao',  -- Nome da instância na Evolution
+  'bot-do-joao',  -- Mesma coisa
+  '5511999999999', -- O número pessoal dele (com 55 e DDD) para a Trava de Segurança
+  true, 
+  now()
+);
+Pronto! A partir desse momento, quando ele mandar uma mensagem (do número pessoal dele) para o número do bot dele, a inteligência artificial vai processar e salvar os gastos diretamente no painel dele na Vercel, totalmente isolado dos seus dados!
+
