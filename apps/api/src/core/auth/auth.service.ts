@@ -94,7 +94,7 @@ export class AuthService {
   }
 
   async me(userId: string) {
-    return this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
         memberships: {
@@ -102,5 +102,16 @@ export class AuthService {
         },
       },
     });
+
+    if (!user) return null;
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        tenant: user.memberships[0]?.tenant,
+      },
+    };
   }
 }
