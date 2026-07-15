@@ -1,0 +1,71 @@
+{
+  "name": "Assessor - Lembrete Diário (Agenda Financeira)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "1d1f0545-8126-4074-b5a0-53bc0cfaf4a1",
+      "name": "Todo dia às 8h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [ 460, 460 ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://assessor-api:3000/api/v1/webhooks/n8n",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "action",
+              "value": "send_daily_reminders"
+            },
+            {
+              "name": "apiKey",
+              "value": "e80f766bd5f3a402f21f5c309f102481c6324927413339d8542e0ccd39531a26"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e93dbd26-0683-49d7-bf41-cd6df15570bb",
+      "name": "Disparar Webhook (API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [ 680, 460 ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Todo dia às 8h": {
+      "main": [
+        [
+          {
+            "node": "Disparar Webhook (API)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f7ab08f6-df30-4e31-97b0-8c293775d799",
+  "id": "2",
+  "meta": {
+    "templateId": "2"
+  },
+  "tags": []
+}

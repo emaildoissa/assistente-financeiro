@@ -396,6 +396,62 @@ export class WebhooksService {
     if (this.n8nApiKey && incomingApiKey !== this.n8nApiKey) {
       throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
     }
+
+    if (data.action === 'send_daily_reminders') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const endOfToday = new Date(today);
+      endOfToday.setHours(23, 59, 59, 999);
+
+      // Buscar instâncias ativas que possuem dono (ownerPhone)
+      const instances = await this.prisma.whatsappInstance.findMany({
+        where: { isActive: true, ownerPhone: { not: null } },
+      });
+
+      let sentCount = 0;
+
+      for (const instance of instances) {
+        const tenantId = instance.tenantId;
+        const ownerPhone = instance.ownerPhone!;
+        const instanceName = instance.instanceName;
+
+        // Buscar despesas pendentes com vencimento até hoje
+        const pendingBills = await this.prisma.financialTransaction.findMany({
+          where: {
+            tenantId,
+            status: 'pending',
+            type: 'expense',
+            dueDate: { lte: endOfToday }, // Vence até hoje (inclui atrasadas)
+          },
+          orderBy: { dueDate: 'asc' },
+        });
+
+        let message = '';
+        if (pendingBills.length === 0) {
+          message = 'Bom dia! ☀️\nVocê não tem contas pendentes com vencimento para hoje! 🎉';
+        } else {
+          message = `Bom dia! ☀️\nVocê tem ${pendingBills.length} conta(s) para pagar (vencendo hoje ou atrasadas):\n\n`;
+          let total = 0;
+          for (const bill of pendingBills) {
+            const dateStr = bill.dueDate ? bill.dueDate.toISOString().slice(0, 10).split('-').reverse().join('/') : 'Sem data';
+            const amount = Number(bill.amount).toFixed(2).replace('.', ',');
+            message += `🔹 *${bill.description || 'Conta'}* - R$ ${amount} (Venc: ${dateStr})\n`;
+            total += Number(bill.amount);
+          }
+          message += `\n💰 *Total:* R$ ${total.toFixed(2).replace('.', ',')}`;
+        }
+
+        try {
+          await this.evolution.sendText(instanceName, ownerPhone, message);
+          sentCount++;
+        } catch (e) {
+          console.error(`[WebhooksService] Falha ao enviar lembrete para ${ownerPhone}:`, e);
+        }
+      }
+
+      return { received: true, action: data.action, sentCount };
+    }
+
     return { received: true, action: data.action };
   }
 }
