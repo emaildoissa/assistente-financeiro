@@ -1,15 +1,15 @@
 {
+  "/(authenticated)/categories/page": "app/(authenticated)/categories/page.js",
+  "/(authenticated)/conversations/page": "app/(authenticated)/conversations/page.js",
+  "/(authenticated)/dashboard/page": "app/(authenticated)/dashboard/page.js",
   "/(authenticated)/page": "app/(authenticated)/page.js",
+  "/(authenticated)/projects/page": "app/(authenticated)/projects/page.js",
+  "/(authenticated)/reminders/page": "app/(authenticated)/reminders/page.js",
+  "/(authenticated)/tasks/page": "app/(authenticated)/tasks/page.js",
+  "/(authenticated)/transactions/page": "app/(authenticated)/transactions/page.js",
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
-  "/categories/page": "app/categories/page.js",
-  "/conversations/page": "app/conversations/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
   "/login/page": "app/login/page.js",
   "/page": "app/page.js",
-  "/projects/page": "app/projects/page.js",
-  "/register/page": "app/register/page.js",
-  "/reminders/page": "app/reminders/page.js",
-  "/tasks/page": "app/tasks/page.js",
-  "/transactions/page": "app/transactions/page.js"
+  "/register/page": "app/register/page.js"
 }

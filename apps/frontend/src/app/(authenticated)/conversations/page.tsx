@@ -19,8 +19,8 @@ export default function ConversationsPage() {
   }, []);
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <h1 className="text-3xl font-bold text-gradient tracking-wide">Conversas WhatsApp</h1>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-text-main">Conversas WhatsApp</h1>
 
       <Card>
         <CardContent className="p-0">
@@ -29,20 +29,20 @@ export default function ConversationsPage() {
           ) : conversations.length === 0 ? (
             <div className="p-6 text-center text-text-muted">Nenhuma conversa</div>
           ) : (
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-border">
               {conversations.map(conv => (
-                <div key={conv.id} className="flex items-center justify-between p-4 hover:bg-white/5 group transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 group-hover:scale-110 transition-transform">
-                      <MessageSquare className="h-5 w-5 text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+                <div key={conv.id} className="flex items-center justify-between p-4 hover:bg-surface group transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-full bg-surface flex items-center justify-center">
+                      <MessageSquare className="h-4 w-4 text-text-muted" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-white">{conv.userName || conv.userPhone}</p>
+                      <p className="text-sm font-medium text-text-main">{conv.userName || conv.userPhone}</p>
                       <p className="text-xs text-text-muted mt-0.5">{conv.userPhone}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="text-xs font-medium text-white bg-white/5 px-2 py-1 rounded-md border border-white/10">{conv._count.messages} msgs</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-medium text-text-muted bg-surface px-2 py-1 rounded-full">{conv._count.messages} msgs</span>
                     <Badge variant={conv.status}>{conv.status}</Badge>
                   </div>
                 </div>

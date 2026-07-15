@@ -47,7 +47,7 @@ export function ReminderForm({ onSuccess, onCancel, reminder }: ReminderFormProp
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm text-gray-500 mb-1 block">Título</label>
+        <label className="text-sm text-text-muted mb-1 block">Título</label>
         <Input
           placeholder="Ex: Pagar conta de luz"
           value={title}
@@ -57,16 +57,16 @@ export function ReminderForm({ onSuccess, onCancel, reminder }: ReminderFormProp
       </div>
 
       <div>
-        <label className="text-sm text-gray-500 mb-1 block">Descrição</label>
+        <label className="text-sm text-text-muted mb-1 block">Descrição</label>
         <textarea
           value={description}
           onChange={e => setDescription(e.target.value)}
-          className="flex h-20 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="flex h-20 w-full rounded-lg border border-border bg-surface px-4 py-2 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
 
       <div>
-        <label className="text-sm text-gray-500 mb-1 block">Data</label>
+        <label className="text-sm text-text-muted mb-1 block">Data</label>
         <Input
           type="date"
           value={remindAt}
@@ -76,7 +76,7 @@ export function ReminderForm({ onSuccess, onCancel, reminder }: ReminderFormProp
       </div>
 
       <div>
-        <label className="text-sm text-gray-500 mb-1 block">Horário</label>
+        <label className="text-sm text-text-muted mb-1 block">Horário</label>
         <Input
           type="time"
           value={remindTime}

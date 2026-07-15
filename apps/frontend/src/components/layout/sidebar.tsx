@@ -26,61 +26,55 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Close mobile sidebar on route change
   useEffect(() => {
     setMobileOpen(false);
   }, [pathname]);
 
   return (
     <>
-      {/* Mobile Hamburger Button */}
       <button 
         onClick={() => setMobileOpen(true)}
-        className="md:hidden fixed top-4 left-4 z-40 p-2 rounded-lg bg-black/40 border border-white/10 text-white backdrop-blur-md shadow-lg"
+        className="md:hidden fixed top-4 left-4 z-40 p-2 rounded-full bg-white border border-border text-text-main elevation-1"
       >
-        <Menu className="h-6 w-6" />
+        <Menu className="h-5 w-5" />
       </button>
 
-      {/* Mobile Backdrop */}
       {mobileOpen && (
         <div 
-          className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+          className="md:hidden fixed inset-0 bg-black/40 z-40"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
       <aside className={cn(
-        'flex flex-col border-r border-white/10 glass-card rounded-none z-50 transition-all duration-300',
+        'flex flex-col bg-white border-r border-border z-50 transition-all duration-300',
         'fixed inset-y-0 left-0 transform md:relative md:translate-x-0',
         mobileOpen ? 'translate-x-0' : '-translate-x-full',
         collapsed ? 'md:w-16 w-64' : 'w-72 md:w-64',
       )}>
-        <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
+        <div className="flex h-14 items-center justify-between border-b border-border px-4">
           {!collapsed && (
-            <span className="font-bold text-xl text-gradient tracking-wide">
+            <span className="font-bold text-lg text-text-main tracking-tight">
               Assessor
             </span>
           )}
           
-          {/* Close button for Mobile */}
           <button 
             onClick={() => setMobileOpen(false)} 
-            className="md:hidden p-1.5 hover:bg-white/10 text-text-muted hover:text-white rounded-lg transition-colors ml-auto"
+            className="md:hidden p-1.5 hover:bg-surface text-text-muted hover:text-text-main rounded-full transition-colors ml-auto"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
 
-          {/* Collapse button for Desktop */}
           <button 
             onClick={() => setCollapsed(!collapsed)} 
-            className="hidden md:block p-1.5 hover:bg-white/10 text-text-muted hover:text-white rounded-lg transition-colors ml-auto"
+            className="hidden md:block p-1.5 hover:bg-surface text-text-muted hover:text-text-main rounded-full transition-colors ml-auto"
           >
-            <ChevronLeft className={cn('h-5 w-5 transition-transform duration-300', collapsed && 'rotate-180')} />
+            <ChevronLeft className={cn('h-4 w-4 transition-transform duration-300', collapsed && 'rotate-180')} />
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1.5 p-3 overflow-y-auto">
+        <nav className="flex-1 space-y-0.5 p-2 overflow-y-auto">
           {links.map(({ href, label, icon: Icon }) => {
             const isActive = pathname === href || pathname.startsWith(href + '/');
             return (
@@ -88,36 +82,33 @@ export function Sidebar() {
                 key={href}
                 href={href}
                 className={cn(
-                  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 group relative overflow-hidden',
+                  'flex items-center gap-3 rounded-full px-3 py-2 text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-primary/20 text-blue-400 shadow-[inset_0_0_12px_rgba(59,130,246,0.2)]'
-                    : 'text-text-muted hover:bg-white/5 hover:text-white',
+                    ? 'bg-surface text-text-main font-bold'
+                    : 'text-text-muted hover:bg-surface hover:text-text-main',
                 )}
                 title={collapsed ? label : undefined}
               >
-                {isActive && (
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 rounded-r-md shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-                )}
-                <Icon className={cn('h-5 w-5 shrink-0 transition-transform group-hover:scale-110', isActive && 'drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]')} />
+                <Icon className={cn('h-5 w-5 shrink-0')} />
                 {(!collapsed || mobileOpen) && label}
               </Link>
             );
           })}
         </nav>
 
-        <div className="border-t border-white/10 p-3">
+        <div className="border-t border-border p-2">
           {(!collapsed || mobileOpen) && user && (
-            <div className="px-3 py-3 text-sm text-text-muted truncate bg-black/20 rounded-xl mb-2 border border-white/5">
-              <span className="block text-xs uppercase tracking-wider text-gray-500 mb-1">Usuário Logado</span>
-              <span className="text-white font-medium">{user.name}</span>
+            <div className="px-3 py-2 text-sm text-text-muted truncate bg-surface rounded-full mb-1">
+              <span className="block text-xs text-text-muted/70 mb-0.5">Logado</span>
+              <span className="text-text-main font-medium">{user.name}</span>
             </div>
           )}
           <button
             onClick={logout}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-red-400/80 hover:bg-red-500/10 hover:text-red-400 transition-all duration-200 group"
+            className="flex w-full items-center gap-3 rounded-full px-3 py-2 text-sm text-error hover:bg-red-50 transition-colors"
             title="Sair"
           >
-            <LogOut className="h-5 w-5 shrink-0 group-hover:scale-110 transition-transform" />
+            <LogOut className="h-5 w-5 shrink-0" />
             {(!collapsed || mobileOpen) && 'Desconectar'}
           </button>
         </div>

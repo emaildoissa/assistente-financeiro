@@ -2,13 +2,14 @@
   "headers": {
     "x-nextjs-stale-time": "300",
     "x-nextjs-prerender": "1",
-    "x-next-cache-tags": "_N_T_/layout,_N_T_/projects/layout,_N_T_/projects/page,_N_T_/projects"
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(authenticated)/layout,_N_T_/(authenticated)/projects/layout,_N_T_/(authenticated)/projects/page,_N_T_/projects"
   },
   "segmentPaths": [
     "/_tree",
     "/_full",
-    "/projects/__PAGE__",
-    "/projects",
+    "/!KGF1dGhlbnRpY2F0ZWQp/projects/__PAGE__",
+    "/!KGF1dGhlbnRpY2F0ZWQp/projects",
+    "/!KGF1dGhlbnRpY2F0ZWQp",
     "/_index",
     "/_head"
   ]

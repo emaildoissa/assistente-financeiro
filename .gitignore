@@ -56,4 +56,8 @@ typebot-export-*.json
 
 # TypeScript
 *.tsbuildinfo
-docker/stack*.yml  
+docker/stack*.yml
+
+# Agents and AI tools
+.agents/
+skills-lock.json

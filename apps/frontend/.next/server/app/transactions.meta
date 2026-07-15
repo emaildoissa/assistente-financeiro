@@ -2,13 +2,14 @@
   "headers": {
     "x-nextjs-stale-time": "300",
     "x-nextjs-prerender": "1",
-    "x-next-cache-tags": "_N_T_/layout,_N_T_/transactions/layout,_N_T_/transactions/page,_N_T_/transactions"
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(authenticated)/layout,_N_T_/(authenticated)/transactions/layout,_N_T_/(authenticated)/transactions/page,_N_T_/transactions"
   },
   "segmentPaths": [
     "/_tree",
     "/_full",
-    "/transactions/__PAGE__",
-    "/transactions",
+    "/!KGF1dGhlbnRpY2F0ZWQp/transactions/__PAGE__",
+    "/!KGF1dGhlbnRpY2F0ZWQp/transactions",
+    "/!KGF1dGhlbnRpY2F0ZWQp",
     "/_index",
     "/_head"
   ]

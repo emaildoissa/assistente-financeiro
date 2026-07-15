@@ -47,9 +47,9 @@ export default function TasksPage() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gradient tracking-wide">Tarefas</h1>
+        <h1 className="text-2xl font-bold text-text-main">Tarefas</h1>
         <Button onClick={() => { setEditingTask(undefined); setShowForm(true); }}>Nova Tarefa</Button>
       </div>
 
@@ -64,37 +64,37 @@ export default function TasksPage() {
           ) : tasks.length === 0 ? (
             <div className="p-6 text-center text-text-muted">Nenhuma tarefa</div>
           ) : (
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-border">
               {tasks.map(task => (
-                <div key={task.id} className="flex items-center justify-between p-4 hover:bg-white/5 group transition-colors">
-                  <div className="flex items-center gap-4">
-                    <button onClick={() => toggleStatus(task)} className="transition-transform hover:scale-110">
+                <div key={task.id} className="flex items-center justify-between p-4 hover:bg-surface group transition-colors">
+                  <div className="flex items-center gap-3">
+                    <button onClick={() => toggleStatus(task)} className="transition-transform hover:scale-110 shrink-0">
                       {task.status === 'done'
-                        ? <CheckCircle2 className="h-6 w-6 text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]" />
-                        : <Circle className="h-6 w-6 text-text-muted hover:text-white transition-colors" />
+                        ? <CheckCircle2 className="h-5 w-5 text-success" />
+                        : <Circle className="h-5 w-5 text-text-muted hover:text-text-main transition-colors" />
                       }
                     </button>
                     <div>
-                      <p className={`text-sm font-medium ${task.status === 'done' ? 'line-through text-text-muted' : 'text-white'}`}>
+                      <p className={`text-sm font-medium ${task.status === 'done' ? 'line-through text-text-muted' : 'text-text-main'}`}>
                         {task.title}
                       </p>
                       {task.dueDate && (
-                        <p className="text-xs text-text-muted mt-0.5">Vence: <span className="text-white/80">{formatDate(task.dueDate)}</span></p>
+                        <p className="text-xs text-text-muted mt-0.5">Vence: {formatDate(task.dueDate)}</p>
                       )}
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <Badge variant={task.status}>{task.status.replace('_', ' ')}</Badge>
                     <button
                       onClick={() => { setEditingTask(task); setShowForm(true); }}
-                      className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-2 rounded-full bg-surface text-text-muted hover:bg-surface-hover hover:text-text-main opacity-0 group-hover:opacity-100 transition-all"
                       title="Editar"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(task.id)}
-                      className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-2 rounded-full bg-surface text-text-muted hover:bg-red-50 hover:text-error opacity-0 group-hover:opacity-100 transition-all"
                       title="Excluir"
                     >
                       <Trash2 className="h-4 w-4" />

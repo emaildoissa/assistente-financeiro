@@ -40,9 +40,9 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gradient tracking-wide">Categorias</h1>
+        <h1 className="text-2xl font-bold text-text-main">Categorias</h1>
         <Button onClick={() => { setEditingCategory(undefined); setShowForm(true); }}>Nova Categoria</Button>
       </div>
 
@@ -57,27 +57,27 @@ export default function CategoriesPage() {
           ) : categories.length === 0 ? (
             <div className="p-6 text-center text-text-muted">Nenhuma categoria</div>
           ) : (
-            <div className="divide-y divide-white/5">
+            <div className="divide-y divide-border">
               {categories.map(cat => (
-                <div key={cat.id} className="flex items-center justify-between p-4 hover:bg-white/5 group transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="h-4 w-4 rounded-full shadow-[0_0_10px_rgba(255,255,255,0.2)]" style={{ backgroundColor: cat.color || '#555', boxShadow: cat.color ? `0 0 12px ${cat.color}80` : undefined }} />
-                    <span className="text-sm font-medium text-white tracking-wide">{cat.name}</span>
-                  </div>
+                <div key={cat.id} className="flex items-center justify-between p-4 hover:bg-surface group transition-colors">
                   <div className="flex items-center gap-3">
-                    <Badge variant={cat.type === 'income' ? 'income' : cat.type === 'expense' ? 'expense' : 'default'}>
+                    <div className="h-3.5 w-3.5 rounded-sm shrink-0" style={{ backgroundColor: cat.color || '#999' }} />
+                    <span className="text-sm font-medium text-text-main">{cat.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={cat.type === 'income' ? 'income' : cat.type === 'expense' ? 'expense' : 'income_expense'}>
                       {cat.type === 'income' ? 'Receita' : cat.type === 'expense' ? 'Despesa' : 'Ambos'}
                     </Badge>
                     <button
                       onClick={() => { setEditingCategory(cat); setShowForm(true); }}
-                      className="p-2 rounded-lg bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-2 rounded-full bg-surface text-text-muted hover:bg-surface-hover hover:text-text-main opacity-0 group-hover:opacity-100 transition-all"
                       title="Editar"
                     >
                       <Pencil className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(cat.id)}
-                      className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 opacity-0 group-hover:opacity-100 transition-all"
+                      className="p-2 rounded-full bg-surface text-text-muted hover:bg-red-50 hover:text-error opacity-0 group-hover:opacity-100 transition-all"
                       title="Excluir"
                     >
                       <Trash2 className="h-4 w-4" />

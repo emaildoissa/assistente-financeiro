@@ -62,7 +62,7 @@ export function TransactionForm({ onSuccess, onCancel, transaction }: Transactio
           <Button
             key={t}
             type="button"
-            variant={type === t ? 'default' : 'outline'}
+            variant={type === t ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setType(t)}
           >
@@ -72,7 +72,7 @@ export function TransactionForm({ onSuccess, onCancel, transaction }: Transactio
       </div>
 
       <div>
-        <label className="text-sm text-gray-500 mb-1 block">Valor</label>
+        <label className="text-sm text-text-muted mb-1 block">Valor</label>
         <Input
           type="number"
           step="0.01"
@@ -85,7 +85,7 @@ export function TransactionForm({ onSuccess, onCancel, transaction }: Transactio
       </div>
 
       <div>
-        <label className="text-sm text-gray-500 mb-1 block">Descrição</label>
+        <label className="text-sm text-text-muted mb-1 block">Descrição</label>
         <Input
           placeholder="Ex: Almoço, Gasolina..."
           value={description}
@@ -95,11 +95,11 @@ export function TransactionForm({ onSuccess, onCancel, transaction }: Transactio
       </div>
 
       <div>
-        <label className="text-sm text-gray-500 mb-1 block">Categoria</label>
+        <label className="text-sm text-text-muted mb-1 block">Categoria</label>
         <select
           value={categoryId}
           onChange={e => setCategoryId(e.target.value)}
-          className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="flex h-10 w-full rounded-full border border-border bg-surface px-4 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <option value="">Sem categoria</option>
           {categories.map(c => (
@@ -109,7 +109,7 @@ export function TransactionForm({ onSuccess, onCancel, transaction }: Transactio
       </div>
 
       <div>
-        <label className="text-sm text-gray-500 mb-1 block">Data</label>
+        <label className="text-sm text-text-muted mb-1 block">Data</label>
         <Input
           type="date"
           value={date}

@@ -2,13 +2,14 @@
   "headers": {
     "x-nextjs-stale-time": "300",
     "x-nextjs-prerender": "1",
-    "x-next-cache-tags": "_N_T_/layout,_N_T_/reminders/layout,_N_T_/reminders/page,_N_T_/reminders"
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(authenticated)/layout,_N_T_/(authenticated)/reminders/layout,_N_T_/(authenticated)/reminders/page,_N_T_/reminders"
   },
   "segmentPaths": [
     "/_tree",
     "/_full",
-    "/reminders/__PAGE__",
-    "/reminders",
+    "/!KGF1dGhlbnRpY2F0ZWQp/reminders/__PAGE__",
+    "/!KGF1dGhlbnRpY2F0ZWQp/reminders",
+    "/!KGF1dGhlbnRpY2F0ZWQp",
     "/_index",
     "/_head"
   ]

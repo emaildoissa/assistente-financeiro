@@ -29,21 +29,21 @@ export function MonthPicker({ month, year, onChange }: MonthPickerProps) {
   };
 
   return (
-    <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl px-4 py-2 shadow-lg backdrop-blur-md">
+    <div className="flex items-center gap-4 bg-surface border border-border rounded-full px-4 py-1.5">
       <button 
         onClick={handlePrev}
-        className="p-1 hover:bg-white/10 rounded-lg text-text-muted hover:text-white transition-colors"
+        className="p-1 hover:bg-surface-hover rounded-full text-text-muted hover:text-text-main transition-colors"
       >
         <ChevronLeft className="h-5 w-5" />
       </button>
       
-      <span className="text-white font-medium min-w-[120px] text-center tracking-wide">
+      <span className="text-text-main font-medium min-w-[120px] text-center text-sm tracking-wide">
         {MONTHS[month]} {year}
       </span>
 
       <button 
         onClick={handleNext}
-        className="p-1 hover:bg-white/10 rounded-lg text-text-muted hover:text-white transition-colors"
+        className="p-1 hover:bg-surface-hover rounded-full text-text-muted hover:text-text-main transition-colors"
       >
         <ChevronRight className="h-5 w-5" />
       </button>

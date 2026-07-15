@@ -40,10 +40,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             className={cn(
-              'px-4 py-3 rounded-lg text-sm font-medium shadow-lg animate-in slide-in-from-right',
-              t.type === 'success' && 'bg-green-600 text-white',
-              t.type === 'error' && 'bg-red-600 text-white',
-              t.type === 'info' && 'bg-gray-800 text-white',
+              'px-4 py-3 rounded-lg text-sm font-medium elevation-2',
+              t.type === 'success' && 'bg-success text-white',
+              t.type === 'error' && 'bg-error text-white',
+              t.type === 'info' && 'bg-text-muted text-white',
             )}
           >
             {t.message}

@@ -41,7 +41,7 @@ export function CategoryForm({ onSuccess, onCancel, category }: CategoryFormProp
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm text-gray-500 mb-1 block">Nome</label>
+        <label className="text-sm text-text-muted mb-1 block">Nome</label>
         <Input
           placeholder="Ex: Alimentação"
           value={name}
@@ -51,11 +51,11 @@ export function CategoryForm({ onSuccess, onCancel, category }: CategoryFormProp
       </div>
 
       <div>
-        <label className="text-sm text-gray-500 mb-1 block">Tipo</label>
+        <label className="text-sm text-text-muted mb-1 block">Tipo</label>
         <select
           value={type}
           onChange={e => setType(e.target.value as any)}
-          className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="flex h-10 w-full rounded-full border border-border bg-surface px-4 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary"
         >
           <option value="expense">Despesa</option>
           <option value="income">Receita</option>
@@ -64,7 +64,7 @@ export function CategoryForm({ onSuccess, onCancel, category }: CategoryFormProp
       </div>
 
       <div>
-        <label className="text-sm text-gray-500 mb-1 block">Cor</label>
+        <label className="text-sm text-text-muted mb-1 block">Cor</label>
         <Input
           type="color"
           value={color}

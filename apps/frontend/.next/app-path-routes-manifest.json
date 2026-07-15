@@ -1,15 +1,15 @@
 {
+  "/(authenticated)/categories/page": "/categories",
+  "/(authenticated)/conversations/page": "/conversations",
+  "/(authenticated)/dashboard/page": "/dashboard",
   "/(authenticated)/page": "/",
+  "/(authenticated)/projects/page": "/projects",
+  "/(authenticated)/reminders/page": "/reminders",
+  "/(authenticated)/tasks/page": "/tasks",
+  "/(authenticated)/transactions/page": "/transactions",
   "/_global-error/page": "/_global-error",
   "/_not-found/page": "/_not-found",
-  "/categories/page": "/categories",
-  "/conversations/page": "/conversations",
-  "/dashboard/page": "/dashboard",
   "/login/page": "/login",
   "/page": "/",
-  "/projects/page": "/projects",
-  "/register/page": "/register",
-  "/reminders/page": "/reminders",
-  "/tasks/page": "/tasks",
-  "/transactions/page": "/transactions"
+  "/register/page": "/register"
 }
