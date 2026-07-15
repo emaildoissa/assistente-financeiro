@@ -19,9 +19,7 @@ export function TransactionForm({ onSuccess, onCancel, transaction }: Transactio
   const [description, setDescription] = useState(transaction?.description || '');
   const [categoryId, setCategoryId] = useState(transaction?.category?.id || '');
   const [date, setDate] = useState(
-    transaction
-      ? transaction.transactionDate.slice(0, 10)
-      : new Date().toISOString().slice(0, 10),
+    transaction ? transaction.transactionDate.slice(0, 10) : new Date().toISOString().slice(0, 10),
   );
   const [categories, setCategories] = useState<Category[]>([]);
   const [saving, setSaving] = useState(false);
@@ -35,18 +33,9 @@ export function TransactionForm({ onSuccess, onCancel, transaction }: Transactio
     if (!amount || !description) return;
     setSaving(true);
     try {
-      const body = {
-        type,
-        amount: Number(amount),
-        description,
-        categoryId: categoryId || undefined,
-        transactionDate: new Date(date).toISOString(),
-      };
-      if (isEdit) {
-        await api.updateTransaction(transaction!.id, body);
-      } else {
-        await api.createTransaction(body);
-      }
+      const body = { type, amount: Number(amount), description, categoryId: categoryId || undefined, transactionDate: new Date(date).toISOString() };
+      if (isEdit) await api.updateTransaction(transaction!.id, body);
+      else await api.createTransaction(body);
       onSuccess();
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Erro ao salvar');
@@ -59,69 +48,33 @@ export function TransactionForm({ onSuccess, onCancel, transaction }: Transactio
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="flex gap-2">
         {(['expense', 'income'] as const).map(t => (
-          <Button
-            key={t}
-            type="button"
-            variant={type === t ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setType(t)}
-          >
+          <Button key={t} type="button" variant={type === t ? 'default' : 'ghost'} size="sm" onClick={() => setType(t)}>
             {t === 'expense' ? 'Despesa' : 'Receita'}
           </Button>
         ))}
       </div>
-
       <div>
-        <label className="text-sm text-text-muted mb-1 block">Valor</label>
-        <Input
-          type="number"
-          step="0.01"
-          min="0"
-          placeholder="0,00"
-          value={amount}
-          onChange={e => setAmount(e.target.value)}
-          required
-        />
+        <label className="text-sm font-sans font-medium text-text-main mb-1 block">Valor</label>
+        <Input type="number" step="0.01" min="0" placeholder="0,00" value={amount} onChange={e => setAmount(e.target.value)} required />
       </div>
-
       <div>
-        <label className="text-sm text-text-muted mb-1 block">Descrição</label>
-        <Input
-          placeholder="Ex: Almoço, Gasolina..."
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          required
-        />
+        <label className="text-sm font-sans font-medium text-text-main mb-1 block">Descrição</label>
+        <Input placeholder="Ex: Almoço, Gasolina..." value={description} onChange={e => setDescription(e.target.value)} required />
       </div>
-
       <div>
-        <label className="text-sm text-text-muted mb-1 block">Categoria</label>
-        <select
-          value={categoryId}
-          onChange={e => setCategoryId(e.target.value)}
-          className="flex h-10 w-full rounded-full border border-border bg-surface px-4 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary"
-        >
+        <label className="text-sm font-sans font-medium text-text-main mb-1 block">Categoria</label>
+        <select value={categoryId} onChange={e => setCategoryId(e.target.value)} className="flex h-10 w-full rounded-xl border border-border bg-surface-hover px-4 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary">
           <option value="">Sem categoria</option>
-          {categories.map(c => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
+          {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
       </div>
-
       <div>
-        <label className="text-sm text-text-muted mb-1 block">Data</label>
-        <Input
-          type="date"
-          value={date}
-          onChange={e => setDate(e.target.value)}
-        />
+        <label className="text-sm font-sans font-medium text-text-main mb-1 block">Data</label>
+        <Input type="date" value={date} onChange={e => setDate(e.target.value)} />
       </div>
-
       <div className="flex gap-2 justify-end pt-2">
         <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button type="submit" disabled={saving}>
-          {saving ? 'Salvando...' : isEdit ? 'Atualizar' : 'Salvar'}
-        </Button>
+        <Button type="submit" disabled={saving}>{saving ? 'Salvando...' : isEdit ? 'Atualizar' : 'Salvar'}</Button>
       </div>
     </form>
   );

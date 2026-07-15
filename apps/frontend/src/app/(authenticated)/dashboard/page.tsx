@@ -16,7 +16,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -28,184 +28,159 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, [selectedMonth, selectedYear]);
 
-  if (loading) return <div className="animate-pulse space-y-4">{[1,2,3].map(i => <div key={i} className="h-32 bg-surface rounded-xl" />)}</div>;
+  if (loading) return <div className="animate-pulse space-y-4">{[1,2,3].map(i => <div key={i} className="h-32 bg-surface-hover rounded-2xl" />)}</div>;
   if (error) return <div className="text-error">{error}</div>;
   if (!data) return null;
 
   const pieData = [
-    { name: 'Receitas', value: data.currentMonth.income, color: '#2BA640' },
-    { name: 'Despesas', value: data.currentMonth.expense, color: '#FF0000' },
+    { name: 'Receitas', value: data.currentMonth.income, color: '#4A8C5C' },
+    { name: 'Despesas', value: data.currentMonth.expense, color: '#C14A3A' },
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-up" style={{ animationDelay: '0s' }}>
         <div>
-          <h1 className="text-2xl font-bold text-text-main">Dashboard</h1>
+          <h1 className="font-display text-2xl font-bold text-text-main">Dashboard</h1>
           <p className="text-sm text-text-muted mt-0.5">Bem-vindo de volta, <span className="text-text-main font-medium">{user?.name}</span></p>
         </div>
-        <MonthPicker 
-          month={selectedMonth} 
-          year={selectedYear} 
-          onChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); }} 
+        <MonthPicker
+          month={selectedMonth}
+          year={selectedYear}
+          onChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); }}
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">Saldo Total</p>
-                <p className={`text-2xl font-bold tracking-tight ${data.balance.balance >= 0 ? 'text-text-main' : 'text-error'}`}>
-                  {formatCurrency(data.balance.balance)}
-                </p>
-              </div>
-              <div className="p-3 rounded-full bg-surface">
-                <DollarSign className="h-6 w-6 text-text-muted" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">Receitas (mês)</p>
-                <p className="text-2xl font-bold tracking-tight text-success">
-                  {formatCurrency(data.currentMonth.income)}
-                </p>
-              </div>
-              <div className="p-3 rounded-full bg-green-50">
-                <ArrowUpRight className="h-6 w-6 text-success" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-text-muted uppercase tracking-wider mb-1">Despesas (mês)</p>
-                <p className="text-2xl font-bold tracking-tight text-error">
-                  {formatCurrency(data.currentMonth.expense)}
-                </p>
-              </div>
-              <div className="p-3 rounded-full bg-red-50">
-                <ArrowDownRight className="h-6 w-6 text-error" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Receitas vs Despesas</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <BalanceChart data={pieData} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Próximos Vencimentos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.upcomingTransactions.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="h-12 w-12 rounded-full bg-surface flex items-center justify-center mb-3">
-                  <Calendar className="h-5 w-5 text-text-muted" />
+        {[
+          { title: 'Saldo Total', value: data.balance.balance, icon: DollarSign, color: data.balance.balance >= 0 ? 'text-text-main' : 'text-error', delay: 0.05 },
+          { title: 'Receitas (mês)', value: data.currentMonth.income, icon: ArrowUpRight, color: 'text-success', delay: 0.1 },
+          { title: 'Despesas (mês)', value: data.currentMonth.expense, icon: ArrowDownRight, color: 'text-error', delay: 0.15 },
+        ].map((stat, i) => (
+          <div key={stat.title} className="animate-fade-up" style={{ animationDelay: `${stat.delay}s` }}>
+            <Card className="h-full">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-sans font-medium text-text-muted uppercase tracking-wider mb-1">{stat.title}</p>
+                    <p className={`font-display text-2xl font-bold tracking-tight ${stat.color}`}>
+                      {formatCurrency(Number(stat.value))}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-xl bg-surface-hover">
+                    <stat.icon className="h-5 w-5 text-text-muted" />
+                  </div>
                 </div>
-                <p className="text-sm text-text-muted">Nenhum vencimento nos próximos dias</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {data.upcomingTransactions.slice(0, 5).map(tx => (
-                  <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-surface transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-red-50 flex items-center justify-center">
-                         <DollarSign className="h-4 w-4 text-error" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-text-main">{tx.description || 'Sem descrição'}</p>
-                        <p className="text-xs text-text-muted mt-0.5">Vence {formatDate(tx.dueDate!)}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-text-main">{formatCurrency(Number(tx.amount))}</p>
-                      <span className="inline-flex mt-1 items-center rounded-sm bg-yellow-50 px-1.5 py-0.5 text-xs font-medium text-warning ring-1 ring-inset ring-warning/20">
-                        {tx.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Tarefas Pendentes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.pendingTasks.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-6 text-center">
-                <p className="text-sm text-text-muted">Nenhuma tarefa pendente</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {data.pendingTasks.map(task => (
-                  <div key={task.id} className="flex items-center justify-between p-3 rounded-xl bg-surface hover:bg-surface-hover transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-blue-50 flex items-center justify-center">
-                        <TrendingUp className="h-4 w-4 text-secondary" />
-                      </div>
-                      <span className="text-sm text-text-main font-medium">{task.title}</span>
-                    </div>
-                    <span className="inline-flex items-center rounded-sm bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-secondary ring-1 ring-inset ring-secondary/20">
-                      {task.status.replace('_', ' ')}
-                    </span>
+        {[
+          { title: 'Receitas vs Despesas', content: <BalanceChart data={pieData} />, delay: 0.2 },
+          {
+            title: 'Próximos Vencimentos',
+            empty: 'Nenhum vencimento nos próximos dias',
+            emptyIcon: Calendar,
+            items: data.upcomingTransactions.slice(0, 5),
+            render: (tx: any) => (
+              <div className="flex items-center justify-between p-3 rounded-xl hover:bg-surface-hover transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="h-9 w-9 rounded-lg bg-red-50 flex items-center justify-center">
+                    <DollarSign className="h-4 w-4 text-error" />
                   </div>
-                ))}
+                  <div>
+                    <p className="text-sm font-sans font-medium text-text-main">{tx.description || 'Sem descrição'}</p>
+                    <p className="text-xs text-text-muted mt-0.5">Vence {formatDate(tx.dueDate)}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-text-main">{formatCurrency(Number(tx.amount))}</p>
+                  <Badge variant={tx.status}>{tx.status}</Badge>
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            ),
+            delay: 0.25
+          },
+        ].map((section, i) => (
+          <div key={section.title} className="animate-fade-up" style={{ animationDelay: `${section.delay}s` }}>
+            <Card>
+              <CardHeader>
+                <CardTitle>{section.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {section.content ? section.content : (section as any).items?.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center">
+                    <div className="h-12 w-12 rounded-xl bg-surface-hover flex items-center justify-center mb-3">
+                      {(section as any).emptyIcon && <Calendar className="h-5 w-5 text-text-muted" />}
+                    </div>
+                    <p className="text-sm text-text-muted">{section.empty}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">{(section as any).items?.map((item: any) => (section as any).render(item))}</div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        ))}
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Lembretes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.upcomingReminders.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-6 text-center">
-                <p className="text-sm text-text-muted">Nenhum lembrete agendado</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {data.upcomingReminders.map(rem => (
-                  <div key={rem.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-surface transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-surface flex items-center justify-center">
-                        <Calendar className="h-4 w-4 text-text-muted" />
-                      </div>
-                      <span className="text-sm text-text-main font-medium">{rem.title}</span>
-                    </div>
-                    <span className="text-xs text-text-muted bg-surface px-2 py-1 rounded-full">{formatDate(rem.remindAt)}</span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {[
+          {
+            title: 'Tarefas Pendentes',
+            items: data.pendingTasks,
+            empty: 'Nenhuma tarefa pendente',
+            render: (task: any) => (
+              <div className="flex items-center justify-between p-3 rounded-xl bg-surface-hover hover:bg-surface-hover/80 transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <TrendingUp className="h-4 w-4 text-primary" />
                   </div>
-                ))}
+                  <span className="text-sm font-sans text-text-main font-medium">{task.title}</span>
+                </div>
+                <span className="inline-flex items-center rounded-lg bg-primary/10 px-2 py-1 text-xs font-medium text-primary">{task.status.replace('_', ' ')}</span>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            ),
+            delay: 0.3
+          },
+          {
+            title: 'Lembretes',
+            items: data.upcomingReminders,
+            empty: 'Nenhum lembrete agendado',
+            render: (rem: any) => (
+              <div className="flex items-center justify-between p-3 rounded-xl hover:bg-surface-hover transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-lg bg-surface-hover flex items-center justify-center">
+                    <Calendar className="h-4 w-4 text-text-muted" />
+                  </div>
+                  <span className="text-sm font-sans text-text-main font-medium">{rem.title}</span>
+                </div>
+                <span className="text-xs text-text-muted bg-surface-hover px-2 py-1 rounded-lg">{formatDate(rem.remindAt)}</span>
+              </div>
+            ),
+            delay: 0.35
+          },
+        ].map((section, i) => (
+          <div key={section.title} className="animate-fade-up" style={{ animationDelay: `${section.delay}s` }}>
+            <Card>
+              <CardHeader>
+                <CardTitle>{section.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {section.items.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-6 text-center">
+                    <p className="text-sm text-text-muted">{section.empty}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">{section.items.map((item: any) => section.render(item))}</div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        ))}
       </div>
     </div>
   );

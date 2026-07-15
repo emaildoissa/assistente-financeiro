@@ -20,10 +20,7 @@ export default function ProjectsPage() {
 
   const load = useCallback(() => {
     setLoading(true);
-    api.getProjects()
-      .then(setProjects)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    api.getProjects().then(setProjects).catch(console.error).finally(() => setLoading(false));
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -40,9 +37,9 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-text-main">Projetos</h1>
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center justify-between animate-fade-up" style={{ animationDelay: '0s' }}>
+        <h1 className="font-display text-2xl font-bold text-text-main">Projetos</h1>
         <Button onClick={() => { setEditingProject(undefined); setShowForm(true); }}>Novo Projeto</Button>
       </div>
 
@@ -50,48 +47,42 @@ export default function ProjectsPage() {
         <ProjectForm onSuccess={() => { setShowForm(false); setEditingProject(undefined); toast(editingProject ? 'Projeto atualizado!' : 'Projeto criado!', 'success'); load(); }} onCancel={() => { setShowForm(false); setEditingProject(undefined); }} project={editingProject} />
       </Dialog>
 
-      <Card>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-6 text-center text-text-muted">Carregando...</div>
-          ) : projects.length === 0 ? (
-            <div className="p-6 text-center text-text-muted">Nenhum projeto</div>
-          ) : (
-            <div className="divide-y divide-border">
-              {projects.map(proj => (
-                <div key={proj.id} className="flex items-center justify-between p-4 hover:bg-surface group transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full bg-surface flex items-center justify-center">
-                      <FolderKanban className="h-4 w-4 text-text-muted" />
+      <div className="animate-fade-up" style={{ animationDelay: '0.05s' }}>
+        <Card>
+          <CardContent className="p-0">
+            {loading ? (
+              <div className="p-6 text-center text-text-muted">Carregando...</div>
+            ) : projects.length === 0 ? (
+              <div className="p-6 text-center text-text-muted">Nenhum projeto</div>
+            ) : (
+              <div className="divide-y divide-border-light">
+                {projects.map((proj, i) => (
+                  <div key={proj.id} className="flex items-center justify-between p-4 hover:bg-surface-hover group transition-colors animate-fade-up" style={{ animationDelay: `${0.05 + i * 0.03}s` }}>
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-xl bg-surface-hover flex items-center justify-center">
+                        <FolderKanban className="h-4 w-4 text-text-muted" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-sans font-medium text-text-main">{proj.name}</p>
+                        {proj.description && <p className="text-xs text-text-muted mt-0.5">{proj.description}</p>}
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-text-main">{proj.name}</p>
-                      {proj.description && <p className="text-xs text-text-muted mt-0.5">{proj.description}</p>}
+                    <div className="flex items-center gap-2">
+                      <Badge variant={proj.status || 'pending'}>{proj.status || 'pending'}</Badge>
+                      <button onClick={() => { setEditingProject(proj); setShowForm(true); }} className="p-2 rounded-xl bg-surface-hover text-text-muted hover:bg-white hover:text-text-main opacity-0 group-hover:opacity-100 transition-all" title="Editar">
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button onClick={() => handleDelete(proj.id)} className="p-2 rounded-xl bg-surface-hover text-text-muted hover:bg-red-50 hover:text-error opacity-0 group-hover:opacity-100 transition-all" title="Excluir">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={proj.status || 'pending'}>{proj.status || 'pending'}</Badge>
-                    <button
-                      onClick={() => { setEditingProject(proj); setShowForm(true); }}
-                      className="p-2 rounded-full bg-surface text-text-muted hover:bg-surface-hover hover:text-text-main opacity-0 group-hover:opacity-100 transition-all"
-                      title="Editar"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(proj.id)}
-                      className="p-2 rounded-full bg-surface text-text-muted hover:bg-red-50 hover:text-error opacity-0 group-hover:opacity-100 transition-all"
-                      title="Excluir"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

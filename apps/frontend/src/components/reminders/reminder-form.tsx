@@ -26,69 +26,35 @@ export function ReminderForm({ onSuccess, onCancel, reminder }: ReminderFormProp
     setSaving(true);
     try {
       const remindAtISO = new Date(`${remindAt}T${remindTime}:00`).toISOString();
-      const body = {
-        title,
-        description: description || undefined,
-        remindAt: remindAtISO,
-      };
-      if (isEdit) {
-        await api.updateReminder(reminder!.id, body);
-      } else {
-        await api.createReminder(body as any);
-      }
+      const body = { title, description: description || undefined, remindAt: remindAtISO };
+      if (isEdit) await api.updateReminder(reminder!.id, body);
+      else await api.createReminder(body as any);
       onSuccess();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Erro ao salvar');
-    } finally {
-      setSaving(false);
-    }
+    } catch (err) { alert(err instanceof Error ? err.message : 'Erro ao salvar'); }
+    finally { setSaving(false); }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="text-sm text-text-muted mb-1 block">Título</label>
-        <Input
-          placeholder="Ex: Pagar conta de luz"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          required
-        />
+        <label className="text-sm font-sans font-medium text-text-main mb-1 block">Título</label>
+        <Input placeholder="Ex: Pagar conta de luz" value={title} onChange={e => setTitle(e.target.value)} required />
       </div>
-
       <div>
-        <label className="text-sm text-text-muted mb-1 block">Descrição</label>
-        <textarea
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          className="flex h-20 w-full rounded-lg border border-border bg-surface px-4 py-2 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary"
-        />
+        <label className="text-sm font-sans font-medium text-text-main mb-1 block">Descrição</label>
+        <textarea value={description} onChange={e => setDescription(e.target.value)} className="flex h-20 w-full rounded-xl border border-border bg-surface-hover px-4 py-2 text-sm text-text-main placeholder:text-text-muted/60 focus:outline-none focus:ring-2 focus:ring-primary" />
       </div>
-
       <div>
-        <label className="text-sm text-text-muted mb-1 block">Data</label>
-        <Input
-          type="date"
-          value={remindAt}
-          onChange={e => setRemindAt(e.target.value)}
-          required
-        />
+        <label className="text-sm font-sans font-medium text-text-main mb-1 block">Data</label>
+        <Input type="date" value={remindAt} onChange={e => setRemindAt(e.target.value)} required />
       </div>
-
       <div>
-        <label className="text-sm text-text-muted mb-1 block">Horário</label>
-        <Input
-          type="time"
-          value={remindTime}
-          onChange={e => setRemindTime(e.target.value)}
-        />
+        <label className="text-sm font-sans font-medium text-text-main mb-1 block">Horário</label>
+        <Input type="time" value={remindTime} onChange={e => setRemindTime(e.target.value)} />
       </div>
-
       <div className="flex gap-2 justify-end pt-2">
         <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button type="submit" disabled={saving}>
-          {saving ? 'Salvando...' : isEdit ? 'Atualizar' : 'Salvar'}
-        </Button>
+        <Button type="submit" disabled={saving}>{saving ? 'Salvando...' : isEdit ? 'Atualizar' : 'Salvar'}</Button>
       </div>
     </form>
   );

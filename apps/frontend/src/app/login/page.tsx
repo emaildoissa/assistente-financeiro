@@ -30,19 +30,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white px-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="w-full max-w-sm animate-fade-up">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-text-main">Assessor Financeiro</h1>
-          <p className="text-sm text-text-muted mt-1">Entre com sua conta</p>
+          <h1 className="font-display text-3xl font-bold text-text-main">Assessor</h1>
+          <p className="text-sm text-text-muted mt-2">Entre com sua conta</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-lg bg-red-50 p-3 text-sm text-error border border-red-100">{error}</div>
+            <div className="rounded-xl bg-red-50 p-3 text-sm text-error border border-red-100">{error}</div>
           )}
           <div>
-            <label className="block text-sm font-medium text-text-main mb-1">Email</label>
+            <label className="block text-sm font-sans font-medium text-text-main mb-1.5">Email</label>
             <Input
               type="email"
               value={email}
@@ -52,7 +52,7 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-main mb-1">Senha</label>
+            <label className="block text-sm font-sans font-medium text-text-main mb-1.5">Senha</label>
             <Input
               type="password"
               value={password}
@@ -66,7 +66,7 @@ export default function LoginPage() {
           </Button>
           <p className="text-center text-sm text-text-muted">
             Não tem conta?{' '}
-            <Link href="/register" className="text-secondary hover:underline font-medium">
+            <Link href="/register" className="text-primary hover:underline font-medium">
               Cadastre-se
             </Link>
           </p>
