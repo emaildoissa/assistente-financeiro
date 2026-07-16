@@ -61,7 +61,10 @@ export default function TransactionsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-up" style={{ animationDelay: '0s' }}>
-        <h1 className="font-display text-2xl font-bold text-text-main">Transações</h1>
+        <div>
+          <h1 className="font-display text-3xl font-bold text-text-main tracking-tight">Transações</h1>
+          <p className="text-sm text-text-muted mt-1">Gerencie suas receitas e despesas</p>
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           <MonthPicker month={selectedMonth} year={selectedYear} onChange={(m, y) => { setSelectedMonth(m); setSelectedYear(y); setPage(1); }} />
           <Button onClick={() => { setEditingTransaction(undefined); setShowForm(true); }}>Nova Transação</Button>
@@ -81,46 +84,46 @@ export default function TransactionsPage() {
       </div>
 
       <div className="animate-fade-up" style={{ animationDelay: '0.1s' }}>
-        <Card>
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="p-6 text-center text-text-muted">Carregando...</div>
-            ) : transactions.length === 0 ? (
-              <div className="p-6 text-center text-text-muted">Nenhuma transação</div>
-            ) : (
-              <div className="divide-y divide-border-light">
-                {transactions.map((tx, i) => (
-                  <div key={tx.id} className="flex items-center justify-between p-4 hover:bg-surface-hover group transition-colors animate-fade-up" style={{ animationDelay: `${0.1 + i * 0.03}s` }}>
-                    <div className="flex items-center gap-3">
-                      <div className="h-2.5 w-2.5 rounded-sm shrink-0" style={{ backgroundColor: tx.type === 'income' ? '#4A8C5C' : '#C14A3A' }} />
-                      <div>
-                        <p className="text-sm font-sans font-medium text-text-main">{tx.description || 'Sem descrição'}</p>
-                        <div className="flex gap-2 text-xs text-text-muted mt-0.5">
-                          <span>{formatDate(tx.transactionDate)}</span>
-                          {tx.category && <span className="bg-surface-hover px-1.5 py-0.5 rounded text-text-muted">{tx.category.name}</span>}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-right mr-1">
-                        <p className={`text-sm font-semibold ${tx.type === 'income' ? 'text-success' : 'text-error'}`}>
-                          {tx.type === 'income' ? '+' : '-'}{formatCurrency(Number(tx.amount))}
-                        </p>
-                        <Badge variant={tx.status}>{tx.status}</Badge>
-                      </div>
-                      <button onClick={() => { setEditingTransaction(tx); setShowForm(true); }} className="p-2 rounded-xl bg-surface-hover text-text-muted hover:bg-white hover:text-text-main opacity-0 group-hover:opacity-100 transition-all" title="Editar">
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                      <button onClick={() => handleDelete(tx.id)} className="p-2 rounded-xl bg-surface-hover text-text-muted hover:bg-red-50 hover:text-error opacity-0 group-hover:opacity-100 transition-all" title="Excluir">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+        {loading ? (
+          <div className="p-8 text-center text-text-muted bg-surface rounded-3xl border border-border/50 shadow-soft">Carregando...</div>
+        ) : transactions.length === 0 ? (
+          <div className="p-8 text-center text-text-muted bg-surface rounded-3xl border border-border/50 shadow-soft">Nenhuma transação encontrada.</div>
+        ) : (
+          <div className="space-y-3">
+            {transactions.map((tx, i) => (
+              <div key={tx.id} className="flex flex-col md:flex-row md:items-center justify-between p-5 bg-surface rounded-3xl shadow-sm border border-border/40 hover:shadow-md transition-all group animate-fade-up" style={{ animationDelay: `${0.1 + i * 0.03}s` }}>
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105" style={{ backgroundColor: tx.type === 'income' ? '#4A8C5C15' : '#C14A3A15' }}>
+                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: tx.type === 'income' ? '#4A8C5C' : '#C14A3A' }} />
+                  </div>
+                  <div>
+                    <p className="text-base font-sans font-semibold text-text-main">{tx.description || 'Sem descrição'}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs font-medium text-text-muted">{formatDate(tx.transactionDate)}</span>
+                      {tx.category && <span className="bg-surface-hover px-2 py-0.5 rounded-md text-xs font-medium text-text-muted">{tx.category.name}</span>}
                     </div>
                   </div>
-                ))}
+                </div>
+                <div className="flex items-center justify-between md:justify-end gap-4 mt-4 md:mt-0 w-full md:w-auto">
+                  <div className="text-left md:text-right">
+                    <p className={`font-display text-lg font-bold ${tx.type === 'income' ? 'text-success' : 'text-error'}`}>
+                      {tx.type === 'income' ? '+' : '-'}{formatCurrency(Number(tx.amount))}
+                    </p>
+                    <Badge variant={tx.status}>{tx.status}</Badge>
+                  </div>
+                  <div className="flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-all">
+                    <button onClick={() => { setEditingTransaction(tx); setShowForm(true); }} className="p-2.5 rounded-xl bg-surface-hover text-text-muted hover:bg-white hover:text-text-main transition-colors" title="Editar">
+                      <Pencil className="h-4.5 w-4.5" />
+                    </button>
+                    <button onClick={() => handleDelete(tx.id)} className="p-2.5 rounded-xl bg-surface-hover text-text-muted hover:bg-red-50 hover:text-error transition-colors" title="Excluir">
+                      <Trash2 className="h-4.5 w-4.5" />
+                    </button>
+                  </div>
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        )}
       </div>
 
       {totalPages > 1 && (

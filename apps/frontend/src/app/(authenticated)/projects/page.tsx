@@ -38,8 +38,11 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between animate-fade-up" style={{ animationDelay: '0s' }}>
-        <h1 className="font-display text-2xl font-bold text-text-main">Projetos</h1>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-up" style={{ animationDelay: '0s' }}>
+        <div>
+          <h1 className="font-display text-3xl font-bold text-text-main tracking-tight">Projetos</h1>
+          <p className="text-sm text-text-muted mt-1">Acompanhe suas metas financeiras</p>
+        </div>
         <Button onClick={() => { setEditingProject(undefined); setShowForm(true); }}>Novo Projeto</Button>
       </div>
 
@@ -48,40 +51,38 @@ export default function ProjectsPage() {
       </Dialog>
 
       <div className="animate-fade-up" style={{ animationDelay: '0.05s' }}>
-        <Card>
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="p-6 text-center text-text-muted">Carregando...</div>
-            ) : projects.length === 0 ? (
-              <div className="p-6 text-center text-text-muted">Nenhum projeto</div>
-            ) : (
-              <div className="divide-y divide-border-light">
-                {projects.map((proj, i) => (
-                  <div key={proj.id} className="flex items-center justify-between p-4 hover:bg-surface-hover group transition-colors animate-fade-up" style={{ animationDelay: `${0.05 + i * 0.03}s` }}>
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-xl bg-surface-hover flex items-center justify-center">
-                        <FolderKanban className="h-4 w-4 text-text-muted" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-sans font-medium text-text-main">{proj.name}</p>
-                        {proj.description && <p className="text-xs text-text-muted mt-0.5">{proj.description}</p>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={proj.status || 'pending'}>{proj.status || 'pending'}</Badge>
-                      <button onClick={() => { setEditingProject(proj); setShowForm(true); }} className="p-2 rounded-xl bg-surface-hover text-text-muted hover:bg-white hover:text-text-main opacity-0 group-hover:opacity-100 transition-all" title="Editar">
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                      <button onClick={() => handleDelete(proj.id)} className="p-2 rounded-xl bg-surface-hover text-text-muted hover:bg-red-50 hover:text-error opacity-0 group-hover:opacity-100 transition-all" title="Excluir">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+        {loading ? (
+          <div className="p-8 text-center text-text-muted bg-surface rounded-3xl border border-border/50 shadow-soft">Carregando...</div>
+        ) : projects.length === 0 ? (
+          <div className="p-8 text-center text-text-muted bg-surface rounded-3xl border border-border/50 shadow-soft">Nenhum projeto encontrado.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {projects.map((proj, i) => (
+              <div key={proj.id} className="flex flex-col p-5 bg-surface rounded-3xl shadow-sm border border-border/40 hover:shadow-md transition-all group animate-fade-up" style={{ animationDelay: `${0.05 + i * 0.03}s` }}>
+                <div className="flex items-center gap-4 mb-4">
+                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 bg-primary/10 transition-transform duration-300 group-hover:scale-105">
+                    <FolderKanban className="h-5 w-5 text-primary" />
                   </div>
-                ))}
+                  <div>
+                    <p className="text-lg font-sans font-semibold text-text-main line-clamp-1">{proj.name}</p>
+                    {proj.description && <p className="text-xs font-medium text-text-muted mt-0.5 line-clamp-1">{proj.description}</p>}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mt-auto pt-2 border-t border-border-light">
+                  <Badge variant={proj.status || 'pending'}>{proj.status || 'pending'}</Badge>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => { setEditingProject(proj); setShowForm(true); }} className="p-2.5 rounded-xl bg-surface-hover text-text-muted hover:bg-white hover:text-text-main transition-colors" title="Editar">
+                      <Pencil className="h-4.5 w-4.5" />
+                    </button>
+                    <button onClick={() => handleDelete(proj.id)} className="p-2.5 rounded-xl bg-surface-hover text-text-muted hover:bg-red-50 hover:text-error transition-colors" title="Excluir">
+                      <Trash2 className="h-4.5 w-4.5" />
+                    </button>
+                  </div>
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

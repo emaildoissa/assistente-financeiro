@@ -39,8 +39,11 @@ export default function RemindersPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between animate-fade-up" style={{ animationDelay: '0s' }}>
-        <h1 className="font-display text-2xl font-bold text-text-main">Lembretes</h1>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-fade-up" style={{ animationDelay: '0s' }}>
+        <div>
+          <h1 className="font-display text-3xl font-bold text-text-main tracking-tight">Lembretes</h1>
+          <p className="text-sm text-text-muted mt-1">Não esqueça seus compromissos financeiros</p>
+        </div>
         <Button onClick={() => { setEditingReminder(undefined); setShowForm(true); }}>Novo Lembrete</Button>
       </div>
 
@@ -49,45 +52,41 @@ export default function RemindersPage() {
       </Dialog>
 
       <div className="animate-fade-up" style={{ animationDelay: '0.05s' }}>
-        <Card>
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="p-6 text-center text-text-muted">Carregando...</div>
-            ) : reminders.length === 0 ? (
-              <div className="p-6 text-center text-text-muted">Nenhum lembrete</div>
-            ) : (
-              <div className="divide-y divide-border-light">
-                {reminders.map((rem, i) => (
-                  <div key={rem.id} className="flex items-center justify-between p-4 hover:bg-surface-hover group transition-colors animate-fade-up" style={{ animationDelay: `${0.05 + i * 0.03}s` }}>
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-xl bg-surface-hover flex items-center justify-center">
-                        <Bell className="h-4 w-4 text-text-muted" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-sans font-medium text-text-main">{rem.title}</p>
-                        {rem.description && <p className="text-xs text-text-muted mt-0.5">{rem.description}</p>}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <p className="text-xs text-text-muted bg-surface-hover px-2 py-1 rounded-lg mb-1">{formatDate(rem.remindAt)}</p>
-                        <Badge variant={rem.isSent ? 'paid' : 'pending'}>{rem.isSent ? 'Enviado' : 'Pendente'}</Badge>
-                      </div>
-                      <div className="flex gap-1">
-                        <button onClick={() => { setEditingReminder(rem); setShowForm(true); }} className="p-2 rounded-xl bg-surface-hover text-text-muted hover:bg-white hover:text-text-main opacity-0 group-hover:opacity-100 transition-all" title="Editar">
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button onClick={() => handleDelete(rem.id)} className="p-2 rounded-xl bg-surface-hover text-text-muted hover:bg-red-50 hover:text-error opacity-0 group-hover:opacity-100 transition-all" title="Excluir">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </div>
+        {loading ? (
+          <div className="p-8 text-center text-text-muted bg-surface rounded-3xl border border-border/50 shadow-soft">Carregando...</div>
+        ) : reminders.length === 0 ? (
+          <div className="p-8 text-center text-text-muted bg-surface rounded-3xl border border-border/50 shadow-soft">Nenhum lembrete encontrado.</div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {reminders.map((rem, i) => (
+              <div key={rem.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-surface rounded-3xl shadow-sm border border-border/40 hover:shadow-md transition-all group animate-fade-up" style={{ animationDelay: `${0.05 + i * 0.03}s` }}>
+                <div className="flex items-center gap-4 mb-4 sm:mb-0">
+                  <div className="h-12 w-12 rounded-2xl flex items-center justify-center shrink-0 bg-primary/10 transition-transform duration-300 group-hover:scale-105">
+                    <Bell className="h-5 w-5 text-primary" />
                   </div>
-                ))}
+                  <div>
+                    <p className="text-base font-sans font-semibold text-text-main">{rem.title}</p>
+                    {rem.description && <p className="text-xs text-text-muted mt-0.5 line-clamp-1">{rem.description}</p>}
+                  </div>
+                </div>
+                <div className="flex items-center justify-between sm:flex-col sm:items-end gap-3 sm:gap-2">
+                  <div className="text-left sm:text-right flex items-center sm:block gap-2">
+                    <p className="text-xs font-medium text-text-main bg-surface-hover px-2.5 py-1 rounded-lg sm:mb-1">{formatDate(rem.remindAt)}</p>
+                    <Badge variant={rem.isSent ? 'paid' : 'pending'}>{rem.isSent ? 'Enviado' : 'Pendente'}</Badge>
+                  </div>
+                  <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => { setEditingReminder(rem); setShowForm(true); }} className="p-2.5 rounded-xl bg-surface-hover text-text-muted hover:bg-white hover:text-text-main transition-colors" title="Editar">
+                      <Pencil className="h-4.5 w-4.5" />
+                    </button>
+                    <button onClick={() => handleDelete(rem.id)} className="p-2.5 rounded-xl bg-surface-hover text-text-muted hover:bg-red-50 hover:text-error transition-colors" title="Excluir">
+                      <Trash2 className="h-4.5 w-4.5" />
+                    </button>
+                  </div>
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
