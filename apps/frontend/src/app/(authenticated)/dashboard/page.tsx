@@ -75,7 +75,7 @@ export default function DashboardPage() {
         <Card className="col-span-2 md:col-span-1 border-none shadow-soft bg-gradient-to-br from-surface to-surface-hover">
           <CardContent className="pt-6">
             <p className="text-sm font-sans font-medium text-text-muted mb-2">Saldo Geral</p>
-            <p className={\`font-display text-3xl font-bold tracking-tight \${data.balance.balance >= 0 ? 'text-text-main' : 'text-error'}\`}>
+            <p className={`font-display text-3xl font-bold tracking-tight ${data.balance.balance >= 0 ? 'text-text-main' : 'text-error'}`}>
               {formatCurrency(Number(data.balance.balance))}
             </p>
           </CardContent>
