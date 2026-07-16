@@ -17,7 +17,6 @@ const links = [
   { href: '/tasks', label: 'Tarefas', icon: CheckSquare },
   { href: '/projects', label: 'Projetos', icon: FolderKanban },
   { href: '/reminders', label: 'Lembretes', icon: Bell },
-  { href: '/conversations', label: 'Conversas', icon: MessageSquare },
 ];
 
 export function Sidebar() {

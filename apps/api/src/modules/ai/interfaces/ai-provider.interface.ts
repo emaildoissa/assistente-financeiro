@@ -9,5 +9,5 @@ export interface AudioInput {
 }
 
 export interface AiProvider {
-  classify(message: string, audio?: AudioInput): Promise<AiClassification>;
+  classify(message: string, audio?: AudioInput, categoriesContext?: string): Promise<AiClassification>;
 }

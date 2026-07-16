@@ -58,13 +58,27 @@ export class DashboardService {
         transactionDate: { gte: start, lte: end },
         status: { not: 'cancelled' },
       },
+      include: { category: true },
     });
 
     const totals = { income: 0, expense: 0, count: transactions.length };
+    const byCategory: Record<string, number> = {};
+
     for (const tx of transactions) {
-      totals[tx.type] += Number(tx.amount);
+      const amount = Number(tx.amount);
+      totals[tx.type] += amount;
+      
+      if (tx.type === 'expense') {
+        const catName = tx.category?.name || 'Outros';
+        byCategory[catName] = (byCategory[catName] || 0) + amount;
+      }
     }
-    return totals;
+
+    const byCategoryArray = Object.entries(byCategory)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+
+    return { ...totals, byCategory: byCategoryArray };
   }
 
   private async getUpcoming(tenantId: string) {

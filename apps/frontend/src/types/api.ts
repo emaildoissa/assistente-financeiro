@@ -50,7 +50,7 @@ export interface Category {
 
 export interface Dashboard {
   balance: { income: number; expense: number; balance: number };
-  currentMonth: { income: number; expense: number; count: number };
+  currentMonth: { income: number; expense: number; count: number; byCategory: { name: string; value: number }[] };
   upcomingTransactions: Transaction[];
   pendingTasks: Task[];
   upcomingReminders: Reminder[];

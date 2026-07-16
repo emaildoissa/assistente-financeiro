@@ -23,7 +23,7 @@ export class AiService implements OnModuleInit {
     }
   }
 
-  async classify(message: string, audio?: AudioInput): Promise<AiClassification> {
-    return this.provider.classify(message, audio);
+  async classify(message: string, audio?: AudioInput, categoriesContext?: string): Promise<AiClassification> {
+    return this.provider.classify(message, audio, categoriesContext);
   }
 }

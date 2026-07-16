@@ -14,14 +14,19 @@ export function BalanceChart({ data }: { data: { name: string; value: number; co
           nameKey="name"
           cx="50%"
           cy="50%"
-          outerRadius={80}
-          label={({ name, percent }: any) => `${name ?? ''} ${((percent ?? 0) * 100).toFixed(0)}%`}
+          innerRadius={65}
+          outerRadius={90}
+          stroke="transparent"
+          paddingAngle={2}
         >
           {data.map((_, idx) => (
             <Cell key={idx} fill={data[idx].color || COLORS[idx % COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip formatter={(value: any) => (Number(value) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} />
+        <Tooltip 
+          formatter={(value: any) => (Number(value) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+          contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
+        />
       </PieChart>
     </ResponsiveContainer>
   );

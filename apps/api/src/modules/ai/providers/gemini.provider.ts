@@ -34,7 +34,7 @@ export class GeminiProvider implements AiProvider {
     this.systemPrompt = this.config.get('AI_SYSTEM_PROMPT') || DEFAULT_PROMPT;
   }
 
-  async classify(message: string, audio?: AudioInput): Promise<AiClassification> {
+  async classify(message: string, audio?: AudioInput, categoriesContext?: string): Promise<AiClassification> {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
 
     const parts: any[] = [];
@@ -45,16 +45,21 @@ export class GeminiProvider implements AiProvider {
       timeStyle: 'short',
     }).format(new Date());
 
+    let contextPrompt = this.systemPrompt;
+    if (categoriesContext) {
+      contextPrompt += `\n\nO usuário possui as seguintes categorias disponíveis:\n${categoriesContext}\nSe a transação for do tipo income ou expense, analise o contexto e TENTE adivinhar a categoria, retornando APENAS O ID NUMÉRICO exato da categoria no campo 'categoryId'. Se nenhuma se encaixar bem, não envie o categoryId.`;
+    }
+
     if (audio) {
       parts.push({
         inline_data: { mime_type: audio.mimeType, data: audio.base64 },
       });
       parts.push({
-        text: `Data atual: ${currentDate}\n\nAnalise o arquivo anexo (pode ser um áudio de voz ou a foto de um recibo/comprovante). Extraia e classifique a intenção financeira. Se houver valores numéricos (contas, preços, totais), extraia como entidade "amount" do tipo "expense" (ou "income" se for recebimento) com a descrição adequada.\n\n${this.systemPrompt}`,
+        text: `Data atual: ${currentDate}\n\nAnalise o arquivo anexo (pode ser um áudio de voz ou a foto de um recibo/comprovante). Extraia e classifique a intenção financeira. Se houver valores numéricos (contas, preços, totais), extraia como entidade "amount" do tipo "expense" (ou "income" se for recebimento) com a descrição adequada.\n\n${contextPrompt}`,
       });
     } else {
       parts.push({
-        text: `Data atual: ${currentDate}\n\n${this.systemPrompt}\n\nMensagem: ${message}`,
+        text: `Data atual: ${currentDate}\n\n${contextPrompt}\n\nMensagem: ${message}`,
       });
     }
 

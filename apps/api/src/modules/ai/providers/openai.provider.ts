@@ -34,13 +34,18 @@ export class OpenAiProvider implements AiProvider {
     this.systemPrompt = this.config.get('AI_SYSTEM_PROMPT') || DEFAULT_PROMPT;
   }
 
-  async classify(message: string, audio?: AudioInput): Promise<AiClassification> {
+  async classify(message: string, audio?: AudioInput, categoriesContext?: string): Promise<AiClassification> {
     if (audio) {
       throw new Error('OpenAI provider does not support audio classification. Use AI_PROVIDER=gemini for audio support.');
     }
 
     const url = 'https://api.openai.com/v1/chat/completions';
     const currentDate = new Date().toISOString();
+
+    let contextPrompt = this.systemPrompt;
+    if (categoriesContext) {
+      contextPrompt += `\n\nO usuário possui as seguintes categorias disponíveis:\n${categoriesContext}\nSe a transação for do tipo income ou expense, analise o contexto e TENTE adivinhar a categoria, retornando APENAS O ID NUMÉRICO exato da categoria no campo 'categoryId'. Se nenhuma se encaixar bem, não envie o categoryId.`;
+    }
 
     const response = await fetch(url, {
       method: 'POST',
@@ -51,7 +56,7 @@ export class OpenAiProvider implements AiProvider {
       body: JSON.stringify({
         model: this.model,
         messages: [
-          { role: 'system', content: `Data atual: ${currentDate}\n\n${this.systemPrompt}` },
+          { role: 'system', content: `Data atual: ${currentDate}\n\n${contextPrompt}` },
           { role: 'user', content: message },
         ],
         temperature: 0.1,

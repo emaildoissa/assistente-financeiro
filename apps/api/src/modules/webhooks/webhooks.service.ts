@@ -207,7 +207,14 @@ export class WebhooksService {
     // Step 3: Classificação via IA
     if (!intent && (rawMessage || audioInput)) {
       try {
-        const result = await this.ai.classify(rawMessage, audioInput);
+        const categories = await this.prisma.financialCategory.findMany({
+          where: { tenantId }
+        });
+        const categoriesContext = categories.length > 0 
+          ? categories.map(c => `ID: ${c.id} - ${c.name} (${c.type})`).join('\n')
+          : undefined;
+
+        const result = await this.ai.classify(rawMessage, audioInput, categoriesContext);
         intent = result.intent;
         entities = result.entities;
       } catch (e) {
