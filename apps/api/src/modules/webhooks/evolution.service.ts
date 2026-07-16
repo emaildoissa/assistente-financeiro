@@ -29,6 +29,38 @@ export class EvolutionService {
     }
   }
 
+  async sendButtons(instanceName: string, number: string, text: string, buttons: Array<{ id: string, text: string }>, delay = 1000): Promise<void> {
+    const url = `${this.baseUrl}/message/sendButtons/${instanceName}`;
+    const payload = {
+      number,
+      title: 'Lembrete de Conta 🔔',
+      description: text,
+      text: text, // Adding both text and description depending on Evolution version
+      footer: 'Assistente Financeiro',
+      buttons: buttons.map(b => ({
+        type: 'reply',
+        displayText: b.text,
+        id: b.id // Note: API v2 might not use 'id' in the standard way, but we pass it. If 'id' is unsupported, the displayText is the only identifier.
+      })),
+      delay
+    };
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apiKey': this.apiKey,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text().catch(() => '');
+      console.error(`[EvolutionService] sendButtons error ${res.status}: ${errorText.slice(0, 300)}`);
+      throw new Error(`Evolution API sendButtons error: ${res.status}`);
+    }
+  }
+
   getMediaUrl(instanceName: string, mediaUrl: string): string {
     if (mediaUrl.startsWith('http')) return mediaUrl;
     const base = this.baseUrl.replace(/\/+$/, '');

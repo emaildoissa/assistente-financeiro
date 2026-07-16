@@ -39,7 +39,11 @@ export class GeminiProvider implements AiProvider {
 
     const parts: any[] = [];
 
-    const currentDate = new Date().toISOString();
+    const currentDate = new Intl.DateTimeFormat('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      dateStyle: 'full',
+      timeStyle: 'short',
+    }).format(new Date());
 
     if (audio) {
       parts.push({

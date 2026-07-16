@@ -362,6 +362,33 @@ export class WebhooksService {
       }
     }
 
+    // Interceptar cliques em botões
+    let buttonId: string | undefined;
+    const messageObj = msgData?.message || {};
+    if (messageObj?.buttonsResponseMessage?.selectedButtonId) {
+      buttonId = messageObj.buttonsResponseMessage.selectedButtonId;
+    } else if (messageObj?.templateButtonReplyMessage?.selectedId) {
+      buttonId = messageObj.templateButtonReplyMessage.selectedId;
+    } else if (messageObj?.interactiveResponseMessage?.nativeFlowResponseMessage?.id) {
+      buttonId = messageObj.interactiveResponseMessage.nativeFlowResponseMessage.id;
+      try { const p = JSON.parse(buttonId as string); if (p.id) buttonId = p.id; } catch {}
+    } else if (messageObj?.listResponseMessage?.singleSelectReply?.selectedRowId) {
+      buttonId = messageObj.listResponseMessage.singleSelectReply.selectedRowId;
+    }
+
+    if (buttonId && buttonId.startsWith('pay_')) {
+      const txId = buttonId.replace('pay_', '');
+      try {
+        await this.transactions.update(txId, tenantId!, { status: 'paid', paymentDate: new Date().toISOString() });
+        await this.evolution.sendText(instanceName, userPhone, '✅ Maravilha! Conta marcada como paga.');
+        return { received: true, action: 'mark_paid', txId };
+      } catch (e) {
+        console.error(`[WebhooksService] Falha ao marcar conta como paga:`, e);
+        await this.evolution.sendText(instanceName, userPhone, '❌ Ocorreu um erro ao marcar a conta como paga.');
+        return { received: true, error: true };
+      }
+    }
+
     if (!rawMessage && !audioUrl) return { received: true, ignored: true };
 
     // 2. EVITAR LOOP INFINITO: Ignorar mensagens que começam com os padrões do Bot
@@ -429,23 +456,37 @@ export class WebhooksService {
         let message = '';
         if (pendingBills.length === 0) {
           message = 'Bom dia! ☀️\nVocê não tem contas pendentes com vencimento para hoje! 🎉';
-        } else {
-          message = `Bom dia! ☀️\nVocê tem ${pendingBills.length} conta(s) para pagar (vencendo hoje ou atrasadas):\n\n`;
-          let total = 0;
-          for (const bill of pendingBills) {
-            const dateStr = bill.dueDate ? bill.dueDate.toISOString().slice(0, 10).split('-').reverse().join('/') : 'Sem data';
-            const amount = Number(bill.amount).toFixed(2).replace('.', ',');
-            message += `🔹 *${bill.description || 'Conta'}* - R$ ${amount} (Venc: ${dateStr})\n`;
-            total += Number(bill.amount);
+          try {
+            await this.evolution.sendText(instanceName, ownerPhone, message);
+            sentCount++;
+          } catch (e) {
+            console.error(`[WebhooksService] Falha ao enviar lembrete sem contas para ${ownerPhone}:`, e);
           }
-          message += `\n💰 *Total:* R$ ${total.toFixed(2).replace('.', ',')}`;
-        }
-
-        try {
-          await this.evolution.sendText(instanceName, ownerPhone, message);
-          sentCount++;
-        } catch (e) {
-          console.error(`[WebhooksService] Falha ao enviar lembrete para ${ownerPhone}:`, e);
+        } else {
+          message = `Bom dia! ☀️\nVocê tem ${pendingBills.length} conta(s) para pagar (vencendo hoje ou atrasadas):`;
+          try {
+            await this.evolution.sendText(instanceName, ownerPhone, message);
+            await new Promise(r => setTimeout(r, 1000));
+            
+            for (const bill of pendingBills) {
+              const dateStr = bill.dueDate ? bill.dueDate.toISOString().slice(0, 10).split('-').reverse().join('/') : 'Sem data';
+              const amount = Number(bill.amount).toFixed(2).replace('.', ',');
+              const billText = `🔹 *${bill.description || 'Conta'}*\n💰 R$ ${amount}\n📅 Venc: ${dateStr}`;
+              
+              try {
+                await this.evolution.sendButtons(instanceName, ownerPhone, billText, [
+                  { id: `pay_${bill.id}`, text: 'Já paguei ✅' }
+                ]);
+                sentCount++;
+                await new Promise(r => setTimeout(r, 1000));
+              } catch (btnErr) {
+                console.error(`[WebhooksService] sendButtons failed, fallback to text:`, btnErr);
+                await this.evolution.sendText(instanceName, ownerPhone, billText + '\n\n*(Responda "paguei <valor>" se já efetuou)*');
+              }
+            }
+          } catch (e) {
+            console.error(`[WebhooksService] Falha ao enviar lembrete para ${ownerPhone}:`, e);
+          }
         }
       }
 

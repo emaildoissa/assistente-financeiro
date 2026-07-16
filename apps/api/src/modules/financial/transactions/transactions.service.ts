@@ -97,7 +97,7 @@ export class TransactionsService {
           tenantId,
           type: 'income',
           transactionDate: dateFilter,
-          status: { not: 'cancelled' },
+          status: 'paid',
         },
         _sum: { amount: true },
       }),
@@ -106,7 +106,7 @@ export class TransactionsService {
           tenantId,
           type: 'expense',
           transactionDate: dateFilter,
-          status: { not: 'cancelled' },
+          status: 'paid',
         },
         _sum: { amount: true },
       }),
@@ -127,7 +127,7 @@ export class TransactionsService {
       where: {
         tenantId,
         transactionDate: { gte: new Date(startDate), lte: new Date(endDate) },
-        status: { not: 'cancelled' },
+        status: 'paid',
       },
       include: { category: true },
     });
