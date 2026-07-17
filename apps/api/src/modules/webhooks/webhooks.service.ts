@@ -227,19 +227,41 @@ export class WebhooksService {
 
     switch (intent) {
       case 'create_transaction': {
+        const isPending = entities.status === 'pending' || !!entities.dueDate;
+        const finalStatus = isPending ? 'pending' : (entities.status || 'paid');
+
         const tx = await this.transactions.create(tenantId, undefined, {
           type: entities.type || 'expense',
           amount: Number(entities.amount) || 0,
           description: entities.description || '',
           transactionDate: entities.date || new Date().toISOString(),
           dueDate: entities.dueDate,
-          status: entities.status || 'paid',
+          status: finalStatus,
           categoryId: entities.categoryId,
           source: 'whatsapp',
         });
+
+        // Se for um agendamento, cria também um lembrete para aparecer na interface
+        if (isPending && entities.dueDate) {
+          try {
+            await this.prisma.reminder.create({
+              data: {
+                tenantId,
+                title: `Pagar: ${entities.description || 'Conta'}`,
+                description: `Valor: R$ ${Number(entities.amount || 0).toFixed(2).replace('.', ',')}`,
+                remindAt: new Date(entities.dueDate),
+                isSent: false
+              }
+            });
+          } catch (e) {
+            console.error(`[WebhooksService] Falha ao criar lembrete para a transação:`, e);
+          }
+        }
+
         const tipo = tx.type === 'income' ? '📈 Receita' : '📉 Despesa';
         const valor = Number(tx.amount).toFixed(2).replace('.', ',');
-        const fallbackResponse = `✅ Registrado: ${tipo} de R$ ${valor}${tx.description ? ` — ${tx.description}` : ''}`;
+        const statusTexto = tx.status === 'pending' ? '⏳ Agendado' : '✅ Pago';
+        const fallbackResponse = `${statusTexto}: ${tipo} de R$ ${valor}${tx.description ? ` — ${tx.description}` : ''}`;
         response = entities.bot_reply ? `🤖 ${entities.bot_reply}` : fallbackResponse;
         break;
       }
